@@ -590,50 +590,81 @@ confidence: high|medium|low
 - Can reference discovery insights during planning
 - Natural knowledge accumulation
 
-### Phase 1: Core Modes Foundation (Months 1-2)
-**Goal**: Establish Discovery and Planning modes with file-based state management
+### Phase 1: Foundation + Discovery Mode (Weeks 1-4)
+**Goal**: Validate core concepts with minimal viable CLI foundation
+**Architecture**: Deno CLI with modular services, Claude API integration
 **Deliverables**:
+- Core file-based state management (`.conductor/` structure)
+- Modular service architecture (CLI + future MCP compatibility)
 - Discovery mode with conversation flows and problem exploration
-- Planning mode with aperture control (roadmap through task levels)
-- File-based state management (`.conductor/` structure)
-- Basic mode switching and context preservation
-- Zero-friction initialization (`/conductor "idea"`)
+- Basic CLI commands: `conductor init`, `conductor discover [prompt]`, `conductor status`
+- Single AI agent with mode-specific prompts (simplified, no specialized agents)
+- `project.md` generation and updates with frontmatter
+- Basic error handling and logging
 
-### Phase 2: Design and Build Modes (Months 2-4)
-**Goal**: Add creative and implementation capabilities
+### Phase 2: Planning Mode + Context Management (Weeks 5-8)
+**Goal**: Add planning workflow and validate mode transitions
 **Deliverables**:
-- Design mode with mockup generation and user flow mapping
-- Build mode with code generation and implementation tracking
-- Seamless transitions between Discovery → Planning → Design → Build
-- Visual differentiation and mode-specific interfaces
-- Progressive disclosure and commitment level tracking
+- Planning mode with aperture control (roadmap through task levels)
+- Mode transitions via CLI commands: `conductor plan [prompt]`
+- Planning hierarchy implementation (Roadmap → Sprint → Task levels)
+- `plan.md` generation with appropriate detail levels
+- Cross-mode context preservation and artifact linking
+- Agent-suggested mode transitions within CLI sessions
+- Basic exit criteria validation for mode transitions
 
-### Phase 3: Test and Polish Modes (Months 4-6)
-**Goal**: Complete the mode ecosystem with quality and refinement
+### Phase 3: Build Mode + End-to-End Workflow (Weeks 9-12)
+**Goal**: Add implementation capability for complete Discovery → Planning → Build workflow
+**Deliverables**:
+- Build mode with task execution and code generation
+- CLI command: `conductor build [prompt]`
+- Basic code generation using Claude API
+- File modification capabilities with backup/rollback
+- Progress tracking and build artifacts
+- Integration with git for commit workflows
+- Basic quality gates (syntax checking, linting integration)
+- Complete end-to-end workflow validation
+
+### Phase 4: Production Readiness + CLI Polish (Weeks 13-16)
+**Goal**: Production-ready CLI with robust UX and reliability
+**Deliverables**:
+- Enhanced CLI experience (colors, progress indicators, help systems)
+- Robust error handling and recovery mechanisms
+- Performance optimization and file operation safety
+- Comprehensive documentation and onboarding
+- Command completion and help systems
+- Security considerations and API key management
+- Distribution packaging (Deno compile, npm package)
+
+### Phase 5: Interactive Features + Claude Code Integration (Weeks 17-20)
+**Goal**: Add interactive capabilities and Claude Code command integration
+**Deliverables**:
+- Interactive CLI sessions with conversational flows
+- Claude Code command wrappers that delegate to core CLI services
+- MCP tool implementation exposing core services
+- Natural language command interface (`/conductor discover "idea"`)
+- Enhanced conversation flows with context awareness
+- Seamless integration between CLI and Claude Code workflows
+
+### Phase 6: Additional Modes + Advanced Features (Weeks 21-28)
+**Goal**: Complete mode ecosystem and advanced AI capabilities
 **Deliverables**:
 - Test mode with scenario generation and validation
-- Polish mode with improvement suggestions and optimization
-- Cross-mode context sharing and memory synthesis
-- Quality gates and automated validation
-- Comprehensive workflow from idea to polished product
+- Design mode with mockup generation capabilities
+- Polish mode with improvement suggestions
+- Advanced AI features (pattern recognition, personalized recommendations)
+- Cross-mode analytics and workflow optimization
+- Quality gate enhancements and automated validation
 
-### Phase 4: Advanced Intelligence (Months 6-8)
-**Goal**: Enhanced AI capabilities and learning systems
+### Phase 7: Ecosystem Integration + Web UI (Months 7-10)
+**Goal**: Platform integration and multi-interface support
 **Deliverables**:
-- Pattern recognition across projects and modes
-- Personalized recommendations based on usage history
-- Advanced conversation flows with learning adaptation
-- Competence tracking and skill development features
-- Predictive workflow suggestions
-
-### Phase 5: Ecosystem Integration (Months 8-10)
-**Goal**: Integration with development tools and team workflows
-**Deliverables**:
-- IDE/editor integration with mode-aware interfaces
-- Version control integration with mode-specific commit patterns
-- CI/CD pipeline integration with quality gates
-- Team collaboration features and shared context
-- Analytics and reporting across all modes
+- Web UI sharing core business logic with CLI
+- IDE/editor integration and plugins
+- CI/CD pipeline integration
+- Team collaboration features
+- Advanced template library and community features
+- Enterprise deployment and scaling considerations
 
 ## Success Criteria
 
@@ -694,3 +725,398 @@ confidence: high|medium|low
 **Conductor** addresses the fundamental challenge of human-AI collaboration through a mode-based experience that provides clear mental models, preserves human strategic control, and creates sustainable development practices. Success is measured not just in productivity gains but in enhanced creative flow, better decision-making, and preserved human competence.
 
 The mode-based architecture ensures natural workflow progression from discovery through delivery, with each mode optimized for specific types of thinking and interaction. This design is platform-agnostic and can be implemented across different technology stacks, development environments, and team structures, making it a foundation for the future of collaborative software development.
+
+# Conductor PRD Addendum - UX Modes
+
+## Mode-Based User Experience
+
+### Core Concept
+
+Conductor operates in distinct modes, each with unique visual design, interface layout, and AI interaction patterns to prevent context confusion and set appropriate expectations.
+
+### Defined Modes
+
+#### 🌱 Discovery Mode (Green)
+
+- **Purpose**: "What should we build?"
+- **Interface**: Conversational, open-ended
+- **Activities**: Explore ideas, understand problems, identify user needs
+- **AI Behavior**: Asks probing questions, builds understanding
+- **Outputs**: Vision elements, problem statements, success criteria
+
+#### 📍 Planning Mode (Indigo)
+
+- **Purpose**: "What's our path forward?"
+- **Interface**: Timeline/hierarchy visualization with aperture control
+- **Activities**: Create roadmaps, plan releases, break down work
+- **AI Behavior**: Suggests phases, identifies dependencies, estimates effort
+- **Outputs**: Roadmaps, release plans, epics, stories, tasks
+
+#### 🎨 Design Mode (Blue)
+
+- **Purpose**: "How should it work?"
+- **Interface**: Split view - chat + interactive mockups
+- **Activities**: User flows, interface sketches, data models, architecture
+- **AI Behavior**: Generates mockups, suggests patterns, validates flows
+- **Outputs**: Design decisions, mockups, architecture diagrams
+
+#### ⚡ Build Mode (Orange)
+
+- **Purpose**: "Let's make it real"
+- **Interface**: Task → Code → Result pipeline view
+- **Activities**: Implementation, code generation, integration
+- **AI Behavior**: Focused execution, shows progress, quick cycles
+- **Outputs**: Working code, completed features
+
+#### 🧪 Test Mode (Purple)
+
+- **Purpose**: "Does it actually work?"
+- **Interface**: Scenarios + live preview + results dashboard
+- **Activities**: Validation, edge cases, performance testing
+- **AI Behavior**: Generates test scenarios, identifies issues
+- **Outputs**: Test results, bug reports, performance metrics
+
+#### ✨ Polish Mode (Gold)
+
+- **Purpose**: "Make it excellent"
+- **Interface**: Improvement checklist with focused refinement areas
+- **Activities**: UX refinement, performance optimization, error handling
+- **AI Behavior**: Suggests improvements, implements refinements
+- **Outputs**: Polished features, optimized code
+
+### Mode Transitions
+
+- Clear visual and contextual transitions between modes
+- Conductor can suggest mode switches based on user needs
+- Each mode maintains its own context and memory
+- Smart handoffs preserve relevant information
+
+### Visual Differentiation
+
+- Color-coded headers and themes
+- Mode-appropriate typography
+- Layout changes per mode
+- Ambient visual indicators
+
+## Initial User Experience
+
+### Entry Point
+
+- Simple, welcoming interface: "What's on your mind?"
+- Multiple input options: text, sketch upload, document, voice
+- No forms or templates initially
+
+### Adaptive Interface
+
+- Conversational start that builds understanding
+- Visual building of ideas alongside chat
+- Progressive discovery through dialogue
+- Clear commitment levels (explore → prototype → build)
+
+### Key UX Principles
+
+1. **No cognitive load**: Interface guides naturally
+2. **Progressive disclosure**: Details emerge as needed
+3. **Visual feedback**: See ideas take shape in real-time
+4. **Multiple exit points**: Save, share, or continue later
+5. **Context preservation**: Never lose work or ideas
+
+## Transition to Execution
+
+- Seamless move from planning to building
+- "Magic moment" where ideas become running code
+- Clear value proposition at each transition point
+- Time estimates for deliverables
+
+## Mode Memory & Context
+
+- Each mode maintains its own context
+- Smart context transfer between modes
+- No manual context management required
+- Historical decision preservation
+
+### Anti-Patterns to Avoid
+
+#### In Discovery
+
+- ❌ Jumping to solutions too fast
+- ❌ Making assumptions without validation
+- ❌ Generic requirements gathering
+- ❌ Losing the "why" behind the "what"
+
+#### In Planning
+
+- ❌ Over-planning distant futures
+- ❌ False precision in estimates
+- ❌ Skipping the "what success looks like" discussion
+- ❌ Planning without discovery completion
+
+# Conductor PRD Addendum Refined Discovery & Planning
+
+## Initialization & Discovery Refinements
+
+### Project Initialization
+
+#### Zero-Friction Start
+
+- **No project scaffolding required** - Conductor creates structure as needed
+- **Single command entry**: `/conductor "describe your idea"`
+- **Workspace detection**: Automatically detects existing code vs greenfield
+- **Context inference**: Examines workspace for clues about project type
+
+#### Discovery Conversation Flow
+
+**Progressive Understanding Building**
+
+1. **Problem First**: Start with the problem, not the solution
+
+   - "Tell me about a recent time this was frustrating"
+   - "Who else experiences this problem?"
+   - "What happens if this doesn't get solved?"
+
+2. **Concrete Examples**: Ground abstract ideas in specifics
+
+   - "Walk me through your last grocery trip"
+   - "Show me what you currently use"
+   - "What broke down last time?"
+
+3. **Success Vision**: Define what "better" looks like
+   - "How would you know this is working?"
+   - "What would change for your users?"
+   - "What metrics matter?"
+
+#### Discovery Artifacts
+
+**Living Project Document** (`.conductor/project.md`)
+
+```markdown
+---
+id: grocery-genie
+stage: discovery
+confidence: exploring|validating|committed
+last_updated: 2024-01-15T10:30:00Z
+---
+
+# Project Vision
+
+## Problem Space
+
+- **Core Problem**: [Emerges from conversation]
+- **Affected Users**: [Specific personas identified]
+- **Current Pain**: [Quantified where possible]
+
+## Success Looks Like
+
+- [Concrete, measurable outcomes]
+- [User behavior changes]
+- [Business metrics]
+
+## Constraints Discovered
+
+- **Must Have**: [Non-negotiables]
+- **Nice to Have**: [Acknowledged but deferred]
+- **Won't Do**: [Explicit exclusions]
+
+## Key Insights
+
+- [Aha moments from discovery]
+- [Assumptions to validate]
+- [Risks identified]
+```
+
+### Discovery Mode Behaviors
+
+#### Conductor's Discovery Personality
+
+- **Curious, not prescriptive**: Asks "why" and "tell me more"
+- **Concrete over abstract**: Always grounds in examples
+- **Patient**: Doesn't rush to solutions
+- **Memory**: References earlier points to build understanding
+
+#### Visual Discovery Building
+
+- As conversation progresses, build visual summary alongside
+- Not a requirements document - a shared understanding artifact
+- User can see their thoughts organized in real-time
+- Editable and collaborative
+
+#### Discovery Exit Criteria
+
+Clear transition points when:
+
+1. **Problem is well-understood** (can articulate to others)
+2. **Success is defined** (measurable outcomes identified)
+3. **Scope has boundaries** (explicit what's in/out)
+4. **Commitment level is clear** (exploring vs building)
+
+## Planning Mode Refinements
+
+### Planning Philosophy
+
+#### Just-In-Time Detail
+
+- **Don't plan what you won't build soon** - Details become stale
+- **Rolling wave planning** - Detail increases as work approaches
+- **Aperture matches commitment** - Exploring = broad, Building = specific
+
+#### Planning Artifacts
+
+**Adaptive Plan Document** (`.conductor/plan.md`)
+
+```markdown
+---
+planning_level: roadmap|release|sprint|epic|story|task
+current_focus: "MVP Week 1"
+last_updated: 2024-01-15T14:00:00Z
+confidence: high|medium|low
+---
+
+# Active Plan: [Level-appropriate title]
+
+## Outcome
+
+[What success looks like at this level]
+
+## Timeline
+
+[Appropriate granularity: quarters/weeks/days/hours]
+
+## Scope
+
+### In
+
+- [Committed deliverables]
+
+### Out (Decided)
+
+- [Explicitly excluded with rationale]
+
+### Later (Deferred)
+
+- [Good ideas for future]
+
+## Dependencies
+
+- [What must happen first]
+- [External dependencies]
+
+## Risks & Mitigations
+
+- [What could go wrong]
+- [How we'll handle it]
+
+## Progress
+
+- [Visual representation appropriate to level]
+- [Key metrics/milestones]
+```
+
+### Planning Mode Aperture Control
+
+#### Planning Hierarchy (Industry-Standard Terminology)
+
+##### 🗺️ Product Roadmap
+
+- **Timeframe**: Quarters/Months
+- **Outcome**: Strategic direction and major milestones
+- **Artifacts**: Vision, themes, success metrics
+- **Decisions**: Build vs buy, technical investments
+
+##### 🎯 Release Planning
+
+- **Timeframe**: 2-6 weeks
+- **Outcome**: Shippable increments with clear value
+- **Artifacts**: Release goals, feature sets, acceptance criteria
+- **Decisions**: MVP scope, feature prioritization
+
+##### 📦 Sprint/Iteration
+
+- **Timeframe**: 1-2 weeks
+- **Outcome**: Tested, integrated features
+- **Artifacts**: Sprint goals, committed stories
+- **Decisions**: Capacity planning, dependencies
+
+##### 📋 Epic
+
+- **Timeframe**: 2-4 sprints
+- **Outcome**: Major feature or capability
+- **Artifacts**: Epic brief, architectural decisions
+- **Decisions**: Technical approach, UX patterns
+
+##### 📝 User Story
+
+- **Timeframe**: 1-3 days
+- **Outcome**: Specific user value delivered
+- **Artifacts**: Story card, acceptance criteria, tasks
+- **Decisions**: Implementation approach, done definition
+
+##### ✅ Task
+
+- **Timeframe**: Hours to 1 day
+- **Outcome**: Specific technical work completed
+- **Artifacts**: Task description, implementation notes
+- **Decisions**: Technical details, patterns
+
+#### Aperture Interface
+
+- Visual zoom control slider
+- Bidirectional navigation (zoom in/out)
+- Context-appropriate detail at each level
+- Progressive disclosure of information
+
+### Aperture-Specific Planning Behaviors
+
+#### Roadmap Level (Quarters/Months)
+
+- **Questions**: "What market opportunity?", "What's the vision?"
+- **Outputs**: Themes, strategic bets, success metrics
+- **Precision**: Directionally correct, not precisely wrong
+- **Revision Frequency**: Monthly
+
+#### Release Level (2-6 weeks)
+
+- **Questions**: "What ships together?", "What's the user value?"
+- **Outputs**: Feature sets, acceptance criteria, launch plan
+- **Precision**: Specific features, flexible implementation
+- **Revision Frequency**: Weekly
+
+#### Sprint Level (1-2 weeks)
+
+- **Questions**: "What can we complete?", "Who does what?"
+- **Outputs**: Committed stories, task assignments, impediments
+- **Precision**: Detailed enough to start work
+- **Revision Frequency**: Daily
+
+#### Epic/Story/Task Levels
+
+- **Generated on-demand** when diving into specific work
+- **Detail emerges** through design/build modes
+- **Stored in context** for the appropriate mode
+
+### Planning Transitions
+
+#### From Discovery to Planning
+
+```
+Conductor: "I think I understand the problem space well. Ready to map out a path to solving it?"
+
+[Show discovered constraints and success criteria]
+[Suggest initial timeline scope]
+[Let user choose planning level to start]
+```
+
+#### Planning Level Navigation
+
+- **Zoom metaphor**: Smooth transitions between levels
+- **Breadcrumbs**: Always know where you are
+- **Quick jumps**: Can move between levels without losing context
+
+#### From Planning to Design/Build
+
+```
+Conductor: "We have a solid [sprint/story] plan. Want to:
+- Design how this should work (Design mode)
+- Start building the first piece (Build mode)
+- Refine the plan more (Stay in Planning)
+"
+```
