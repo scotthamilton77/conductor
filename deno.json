@@ -25,10 +25,8 @@
     "@std/log": "jsr:@std/log@^0.224.0"
   },
   "compilerOptions": {
-    "allowJs": true,
     "lib": ["deno.window"],
-    "strict": true,
-    "checkJs": true
+    "strict": true
   },
   "fmt": {
     "useTabs": false,
