@@ -107,8 +107,8 @@
             "dependencies": [
               1
             ],
-            "details": "Integrate gray-matter library for parsing and serializing markdown files with YAML frontmatter. Create MarkdownHandler class with methods for reading, writing, parsing frontmatter, and updating content while preserving formatting. Ensure proper handling of special characters and multi-line content.",
-            "status": "pending",
+            "details": "Integrate gray-matter library for parsing and serializing markdown files with YAML frontmatter. Create MarkdownHandler class with methods for reading, writing, parsing frontmatter, and updating content while preserving formatting. Ensure proper handling of special characters and multi-line content.\n<info added on 2025-06-28T23:46:09.192Z>\nImplementation completed successfully on 2025-01-28. Key accomplishments include:\n\n- Successfully integrated @std/front-matter library for YAML frontmatter parsing and serialization\n- Created comprehensive MarkdownHandler class with full CRUD operations for markdown files\n- Implemented type-safe generic interfaces supporting custom frontmatter schemas\n- Added robust error handling and file validation capabilities\n- Achieved round-trip consistency ensuring data integrity through parse/stringify cycles\n- Created extensive test suite with 17 test cases covering all functionality scenarios\n- All 24 project tests now passing, confirming integration stability\n- Properly exported module in lib/mod.ts for system-wide availability\n\nTechnical implementation details:\n- Added @std/front-matter dependency to deno.json configuration\n- Core files: src/lib/markdown-handler.ts (main implementation), tests/markdown-handler_test.ts (test suite)\n- Supports default attribute handling, content preservation, and schema validation\n- Ready for integration with broader file-based state management system components\n</info added on 2025-06-28T23:46:09.192Z>",
+            "status": "done",
             "testStrategy": "Unit tests for frontmatter parsing, content preservation, and edge cases like empty files or malformed YAML"
           },
           {
@@ -140,8 +140,8 @@
             "dependencies": [
               1
             ],
-            "details": "Create ConfigManager class for handling .conductor/config.json with settings like default mode, file paths, Git integration preferences, and user preferences. Implement JSON schema validation, default value population, and configuration migration support for future versions.",
-            "status": "pending",
+            "details": "Create ConfigManager class for handling .conductor/config.json with settings like default mode, file paths, Git integration preferences, and user preferences. Implement JSON schema validation, default value population, and configuration migration support for future versions.\n<info added on 2025-06-28T23:48:35.271Z>\nTask completed successfully on 2025-06-28. Implementation delivered comprehensive ConfigManager class with complete configuration schema, robust JSON schema validation, default value management, configuration migration support, error recovery from corrupted files, smart caching system, and deep merge capabilities. All 10 test cases pass covering functionality, edge cases, corruption recovery, and validation errors. Module properly exported in mod.ts and safe to run in parallel with markdown handler work as it operates on separate files. Code formatted, linted, and ready for integration.\n</info added on 2025-06-28T23:48:35.271Z>",
+            "status": "done",
             "testStrategy": "Unit tests for configuration loading, validation, default value handling, and configuration file corruption recovery"
           }
         ]
@@ -188,7 +188,7 @@
     ],
     "metadata": {
       "created": "2025-06-28T17:46:38.125Z",
-      "updated": "2025-06-28T23:04:48.664Z",
+      "updated": "2025-06-28T23:48:14.813Z",
       "description": "Phase 1: Foundation + Discovery Mode - CLI-first implementation with Deno, file-based state management, and Discovery mode"
     }
   }
