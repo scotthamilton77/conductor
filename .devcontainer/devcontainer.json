@@ -1,0 +1,74 @@
+{
+  "name": "Conductor CLI Development",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "denoland.vscode-deno",
+        "eamodio.gitlens",
+        "ms-vscode.vscode-json",
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss"
+      ],
+      "settings": {
+        "deno.enable": true,
+        "deno.lint": true,
+        "deno.unstable": [],
+        "deno.path": "/usr/local/bin/deno",
+        "deno.suggest.imports.hosts": {
+          "https://deno.land": true,
+          "https://jsr.io": true
+        },
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "denoland.vscode-deno",
+        "editor.codeActionsOnSave": {
+          "source.fixAll": "explicit"
+        },
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          },
+          "zsh": {
+            "path": "zsh"
+          }
+        },
+        "typescript.preferences.includePackageJsonAutoImports": "off",
+        "typescript.suggest.autoImports": false,
+        "[typescript]": {
+          "editor.defaultFormatter": "denoland.vscode-deno"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "denoland.vscode-deno"
+        },
+        "[json]": {
+          "editor.defaultFormatter": "denoland.vscode-deno"
+        }
+      }
+    }
+  },
+  "remoteUser": "conductor",
+  "mounts": [
+    "source=conductor-bashhistory,target=/commandhistory,type=volume",
+    "source=${localEnv:HOME}/.gitconfig,target=/home/conductor/.gitconfig,type=bind,consistency=cached"
+  ],
+  "remoteEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/conductor/.claude",
+    "DENO_DIR": "/home/conductor/.cache/deno",
+    "POWERLEVEL9K_DISABLE_GITSTATUS": "true",
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
+    "PERPLEXITY_API_KEY": "${localEnv:PERPLEXITY_API_KEY}",
+    "OPENAI_API_KEY": "${localEnv:OPENAI_API_KEY}",
+    "GOOGLE_API_KEY": "${localEnv:GOOGLE_API_KEY}",
+    "XAI_API_KEY": "${localEnv:XAI_API_KEY}",
+    "OPENROUTER_API_KEY": "${localEnv:OPENROUTER_API_KEY}",
+    "MISTRAL_API_KEY": "${localEnv:MISTRAL_API_KEY}"
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+  "workspaceFolder": "/workspace",
+  "updateRemoteUserUID": false,
+  "postCreateCommand": "deno cache src/main.ts && task-master --version"
+}

@@ -60,3 +60,7 @@ Thumbs.db
 # Test coverage
 coverage/
 .nyc_output/
+
+# Claude Code local settings
+.claude/settings.local.json
+.claude/config.local.json
