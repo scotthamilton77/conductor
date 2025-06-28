@@ -5,21 +5,16 @@
  * Focuses on Discovery mode for understanding and breaking down complex problems.
  */
 
-import { Command } from "@cliffy/command";
-
-const VERSION = "0.1.0";
+import { createCLI, initializeLogging } from "./cli.ts";
 
 async function main() {
-  const cmd = new Command()
-    .name("conductor")
-    .version(VERSION)
-    .description("AI-powered conversational CLI for problem exploration and solution development")
-    .action(() => {
-      console.log("Welcome to Conductor!");
-      console.log("Run 'conductor --help' to see available commands.");
-    });
-
-  await cmd.parse(Deno.args);
+  try {
+    const cli = createCLI();
+    await cli.parse(Deno.args);
+  } catch (error) {
+    console.error("❌ Error:", error instanceof Error ? error.message : String(error));
+    Deno.exit(1);
+  }
 }
 
 if (import.meta.main) {
