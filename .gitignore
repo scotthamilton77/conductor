@@ -1,3 +1,7 @@
+# Deno
+deno.lock
+.deno/
+
 # Logs
 logs
 *.log
@@ -5,21 +9,53 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 dev-debug.log
+.conductor/logs/
 
 # Dependency directories
 node_modules/
 
-# Environment variables
+# Compiled output
+bin/
+dist/
+build/
+*.js.map
+*.d.ts
+
+# Environment variables and sensitive files
 .env
+.env.local
+.env.production
+.env.test
+*.key
+*.pem
+*.cert
+.conductor/config/user.json
+.conductor/data/
 
 # Editor directories and files
-.idea
-.vscode
+.idea/
+.vscode/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*~
 
 # OS specific
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Runtime and cache
+.cache/
+.temp/
+.tmp/
+
+# Test coverage
+coverage/
+.nyc_output/
