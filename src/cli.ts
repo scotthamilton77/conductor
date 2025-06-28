@@ -9,6 +9,8 @@ import { Command } from "@cliffy/command";
 import { initConfig, loadConfig } from "./lib/config.ts";
 import { ConsoleLogger } from "./lib/logger.ts";
 import { Confirm, Input, Select } from "@cliffy/prompt";
+import { exists } from "@std/fs";
+import { dirname, join } from "@std/path";
 
 const VERSION = "0.1.0";
 
@@ -173,6 +175,114 @@ export function createCLI() {
           error instanceof Error ? error.message : String(error),
         );
         console.log("\n💡 Try running 'conductor config init' to set up your configuration");
+      }
+    });
+
+  // Add logs command for log management
+  const logsCmd = cmd
+    .command("logs", "Manage and view application logs")
+    .action(async () => {
+      try {
+        const config = await loadConfig();
+        const logFile = config.logging.file;
+
+        if (await exists(logFile)) {
+          console.log(`📋 Log file: ${logFile}`);
+          console.log(
+            "Use 'conductor logs tail' to follow logs, or 'conductor logs clean' to clear them.",
+          );
+        } else {
+          console.log("📋 No log file found yet. Logs will be created when the application runs.");
+        }
+      } catch (error) {
+        console.error(
+          "❌ Failed to check logs:",
+          error instanceof Error ? error.message : String(error),
+        );
+      }
+    });
+
+  logsCmd
+    .command("tail", "Follow log output in real-time")
+    .option("-n, --lines <lines:number>", "Number of lines to show initially", { default: 50 })
+    .action(async (options) => {
+      try {
+        const config = await loadConfig();
+        const logFile = config.logging.file;
+
+        if (!(await exists(logFile))) {
+          console.log("📋 No log file found yet.");
+          return;
+        }
+
+        console.log(`📋 Tailing ${logFile} (last ${options.lines} lines):`);
+        console.log("Press Ctrl+C to stop\n");
+
+        // Show initial lines
+        const content = await Deno.readTextFile(logFile);
+        const lines = content.split("\n").filter((line) => line.trim());
+        const recentLines = lines.slice(-options.lines);
+
+        for (const line of recentLines) {
+          if (line.trim()) {
+            try {
+              const entry = JSON.parse(line);
+              console.log(`[${entry.timestamp}] [${entry.level.toUpperCase()}] ${entry.message}`);
+            } catch {
+              console.log(line);
+            }
+          }
+        }
+
+        // Note: Real-time tailing would require file watching, which is complex
+        // For now, this shows recent logs
+        console.log(
+          "\n💡 Note: This shows recent logs. For real-time tailing, use 'tail -f' on the log file.",
+        );
+      } catch (error) {
+        console.error(
+          "❌ Failed to read logs:",
+          error instanceof Error ? error.message : String(error),
+        );
+      }
+    });
+
+  logsCmd
+    .command("clean", "Clear all log files")
+    .action(async () => {
+      try {
+        const config = await loadConfig();
+        const logFile = config.logging.file;
+        const logDir = dirname(logFile);
+
+        console.log("🧹 Cleaning log files...");
+
+        let cleanedCount = 0;
+
+        // Remove main log file
+        if (await exists(logFile)) {
+          await Deno.remove(logFile);
+          cleanedCount++;
+        }
+
+        // Remove rotated log files
+        try {
+          for await (const entry of Deno.readDir(logDir)) {
+            if (entry.isFile && entry.name.endsWith(".log")) {
+              await Deno.remove(join(logDir, entry.name));
+              cleanedCount++;
+            }
+          }
+        } catch {
+          // Directory might not exist, ignore
+        }
+
+        console.log(`✅ Cleaned ${cleanedCount} log file(s)`);
+      } catch (error) {
+        console.error(
+          "❌ Failed to clean logs:",
+          error instanceof Error ? error.message : String(error),
+        );
       }
     });
 
