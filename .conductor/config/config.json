@@ -1,0 +1,7 @@
+{
+  "api": {
+    "claude": {
+      "apiKey": "${CLAUDE_API_KEY}"
+    }
+  }
+}

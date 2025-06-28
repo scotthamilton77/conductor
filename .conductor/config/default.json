@@ -1,10 +1,11 @@
 {
   "version": "0.1.0",
-  "defaultMode": "discovery",
+  "defaultMode": "discover",
   "api": {
     "claude": {
       "model": "claude-3-5-sonnet-20241022",
-      "maxTokens": 4000
+      "maxTokens": 4096,
+      "apiKey": "${CLAUDE_API_KEY}"
     }
   },
   "logging": {
@@ -12,7 +13,27 @@
     "file": ".conductor/logs/conductor.log"
   },
   "persistence": {
-    "stateDir": ".conductor/data",
-    "format": "markdown"
+    "stateDir": ".conductor/state",
+    "format": "json"
+  },
+  "modes": {
+    "discover": {
+      "enabled": true,
+      "autoScan": true,
+      "scanDepth": 3
+    },
+    "generate": {
+      "enabled": true,
+      "templateDir": ".conductor/templates"
+    },
+    "validate": {
+      "enabled": true,
+      "strictMode": false
+    }
+  },
+  "security": {
+    "requireApiKey": true,
+    "allowLocalFiles": true,
+    "maxFileSize": "10MB"
   }
 }
