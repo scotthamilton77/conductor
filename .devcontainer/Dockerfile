@@ -17,6 +17,7 @@ RUN apt update && apt install -y \
   wget \
   locales \
   python3-pip \
+  vim \
   && echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
   && locale-gen \
   && dpkg-reconfigure --frontend=noninteractive locales
@@ -86,6 +87,9 @@ RUN npm install -g @anthropic-ai/claude-code
 
 # Install Task Master AI
 RUN npm install -g task-master-ai
+
+# Install MCP dependencies for Task Master AI
+RUN npm install -g @modelcontextprotocol/sdk fastmcp
 
 # Install uv (Python package manager) as conductor user
 USER $USERNAME

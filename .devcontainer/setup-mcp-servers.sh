@@ -20,6 +20,6 @@ claude mcp add --transport sse context7 -s user https://mcp.context7.com/sse
 claude mcp add puppeteer -s user -- npx -y @modelcontextprotocol/server-puppeteer
 
 # Taskmaster AI server
-claude mcp add taskmaster-ai -s user -- npx -y --package=task-master-ai task-master-ai
+claude mcp add taskmaster-ai -s user -- npx -y --package=task-master-ai --package=@modelcontextprotocol/sdk task-master-ai
 
 echo "MCP servers added successfully!"
