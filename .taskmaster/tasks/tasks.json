@@ -83,14 +83,68 @@
         "id": 3,
         "title": "Build File-Based State Management System",
         "description": "Implement the .conductor/ directory structure with markdown-based state persistence and Git-friendly format (Phase 1 - core functionality only)",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           1
         ],
         "priority": "high",
         "details": "Create file system abstraction layer for .conductor/ directory management, implement markdown file handling with frontmatter parsing (using gray-matter library), design project.md template with proper YAML frontmatter schema, build basic mode-specific directory structure (discovery/, planning/, design/, build/, test/, polish/), implement basic file operations (create, read, write, delete), ensure Git-friendly formats with proper line endings, and implement config.json handling for Conductor settings. Phase 1 focuses on core functionality - advanced features like file watching, auto-save, concurrent access, backup/rollback, and complex synchronization will be implemented in later phases.",
         "testStrategy": "Test basic file creation/read/write/delete operations, verify frontmatter parsing accuracy with gray-matter, test directory structure creation, validate Git-friendly file formats, and verify config.json handling",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create .conductor Directory Structure and File System Abstraction",
+            "description": "Implement the core directory structure for .conductor/ with mode-specific subdirectories and create a file system abstraction layer for consistent directory operations",
+            "dependencies": [],
+            "details": "Create the .conductor/ root directory with subdirectories for discovery/, planning/, design/, build/, test/, and polish/ modes. Implement a FileSystemManager class that provides consistent APIs for directory creation, validation, and basic file operations. Include error handling for permissions and file system access issues.\n<info added on 2025-06-28T23:04:40.570Z>\nImplementation completed successfully. The FileSystemManager class has been fully developed with all required functionality including the .conductor/ directory structure creation, path helper utilities, directory management methods, and comprehensive error handling. All tests are passing and the module is properly exported for integration with other system components.\n</info added on 2025-06-28T23:04:40.570Z>",
+            "status": "done",
+            "testStrategy": "Unit tests for directory creation, validation of expected structure, and file system permission handling"
+          },
+          {
+            "id": 2,
+            "title": "Implement Markdown File Handling with Frontmatter Support",
+            "description": "Build markdown file processing capabilities using gray-matter library for YAML frontmatter parsing and manipulation",
+            "dependencies": [
+              1
+            ],
+            "details": "Integrate gray-matter library for parsing and serializing markdown files with YAML frontmatter. Create MarkdownHandler class with methods for reading, writing, parsing frontmatter, and updating content while preserving formatting. Ensure proper handling of special characters and multi-line content.",
+            "status": "pending",
+            "testStrategy": "Unit tests for frontmatter parsing, content preservation, and edge cases like empty files or malformed YAML"
+          },
+          {
+            "id": 3,
+            "title": "Design and Implement project.md Template System",
+            "description": "Create the project.md template with proper YAML frontmatter schema and implement template instantiation logic",
+            "dependencies": [
+              2
+            ],
+            "details": "Define the YAML frontmatter schema for project metadata including project name, description, version, created/modified timestamps, and current mode. Create a template system that can generate new project.md files with default values and update existing ones while preserving custom content.",
+            "status": "pending",
+            "testStrategy": "Unit tests for template generation, schema validation, and template update operations without data loss"
+          },
+          {
+            "id": 4,
+            "title": "Build Core File Operations API",
+            "description": "Implement basic file operations (create, read, write, delete) with Git-friendly formatting and proper error handling",
+            "dependencies": [
+              2
+            ],
+            "details": "Create a unified API for file operations within the .conductor/ directory structure. Ensure consistent line endings (LF), proper UTF-8 encoding, and atomic write operations. Include validation for file paths, size limits, and concurrent access detection. Implement proper error handling and logging.",
+            "status": "pending",
+            "testStrategy": "Integration tests for all CRUD operations, file encoding validation, and error condition handling"
+          },
+          {
+            "id": 5,
+            "title": "Implement config.json Configuration Management",
+            "description": "Build configuration file handling for Conductor settings with validation and default value management",
+            "dependencies": [
+              1
+            ],
+            "details": "Create ConfigManager class for handling .conductor/config.json with settings like default mode, file paths, Git integration preferences, and user preferences. Implement JSON schema validation, default value population, and configuration migration support for future versions.",
+            "status": "pending",
+            "testStrategy": "Unit tests for configuration loading, validation, default value handling, and configuration file corruption recovery"
+          }
+        ]
       },
       {
         "id": 4,
@@ -134,7 +188,7 @@
     ],
     "metadata": {
       "created": "2025-06-28T17:46:38.125Z",
-      "updated": "2025-06-28T19:25:28.855Z",
+      "updated": "2025-06-28T23:04:48.664Z",
       "description": "Phase 1: Foundation + Discovery Mode - CLI-first implementation with Deno, file-based state management, and Discovery mode"
     }
   }
