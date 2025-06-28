@@ -1,0 +1,11 @@
+# Task ID: 3
+# Title: Build File-Based State Management System
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Implement the .conductor/ directory structure with markdown-based state persistence and Git-friendly format (Phase 1 - core functionality only)
+# Details:
+Create file system abstraction layer for .conductor/ directory management, implement markdown file handling with frontmatter parsing (using gray-matter library), design project.md template with proper YAML frontmatter schema, build basic mode-specific directory structure (discovery/, planning/, design/, build/, test/, polish/), implement basic file operations (create, read, write, delete), ensure Git-friendly formats with proper line endings, and implement config.json handling for Conductor settings. Phase 1 focuses on core functionality - advanced features like file watching, auto-save, concurrent access, backup/rollback, and complex synchronization will be implemented in later phases.
+
+# Test Strategy:
+Test basic file creation/read/write/delete operations, verify frontmatter parsing accuracy with gray-matter, test directory structure creation, validate Git-friendly file formats, and verify config.json handling

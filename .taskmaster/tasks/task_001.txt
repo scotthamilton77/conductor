@@ -1,0 +1,49 @@
+# Task ID: 1
+# Title: Setup Core Project Infrastructure
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Initialize the Conductor project with foundational architecture using Deno CLI approach, directory structure, and core dependencies for Phase 1
+# Details:
+Create the base project structure with Deno/TypeScript setup, initialize deno.json with core dependencies (cliffy CLI framework, file system libraries), establish basic import map and task runners, setup deno fmt/lint for code quality, create basic directory structure matching .conductor/ specification from PRD, initialize Git repository with appropriate .gitignore, setup basic logging infrastructure using Deno's built-in console APIs, and create configuration management system for API keys (specifically Claude API) and settings using Deno's environment variables and JSON config files.
+
+# Test Strategy:
+Verify project runs with deno run commands, all dependencies resolve correctly, deno fmt/lint passes, basic CLI command structure responds using cliffy, .conductor/ directory structure is created properly, and Claude API key configuration is accessible
+
+# Subtasks:
+## 1. Initialize Deno project with deno.json configuration [pending]
+### Dependencies: None
+### Description: Create the foundational Deno project configuration file with TypeScript settings, import maps, and task runners
+### Details:
+Create deno.json with TypeScript compiler options, import map for external dependencies (cliffy, file system utilities), define tasks for development (dev, test, lint, fmt), configure permissions for file system and network access, and set up workspace configuration
+
+## 2. Setup directory structure and core file organization [pending]
+### Dependencies: 1.1
+### Description: Establish the project directory structure following the .conductor/ specification and create placeholder files
+### Details:
+Create .conductor/ directory structure with subdirectories for config, templates, logs, and data. Create src/ directory with main.ts entry point. Set up lib/ for shared utilities. Create tests/ directory structure. Add placeholder README.md and basic project files
+
+## 3. Initialize Git repository with appropriate configuration [pending]
+### Dependencies: 1.2
+### Description: Set up Git version control with proper .gitignore and initial commit structure
+### Details:
+Initialize Git repository, create comprehensive .gitignore for Deno projects (exclude .env files, log files, compiled outputs, OS files), set up initial commit with project structure, configure Git hooks if needed
+
+## 4. Install and configure cliffy CLI framework [pending]
+### Dependencies: 1.1
+### Description: Set up the cliffy CLI framework as the foundation for command-line interface functionality
+### Details:
+Add cliffy to import map in deno.json, create basic CLI entry point in src/cli.ts, configure command structure for future expansion, implement basic help system and version command, ensure proper TypeScript types are imported
+
+## 5. Implement configuration management system [pending]
+### Dependencies: 1.2, 1.4
+### Description: Create system for managing API keys, user settings, and application configuration using environment variables and JSON files
+### Details:
+Create config loader utility that reads from .env files and JSON config files, implement secure API key storage (Claude API key support), create default configuration templates, add validation for required configuration values, implement config file creation wizard
+
+## 6. Setup logging infrastructure and code quality tools [pending]
+### Dependencies: 1.1, 1.2
+### Description: Implement logging system using Deno's console APIs and configure code formatting/linting tools
+### Details:
+Create logging utility with different log levels (debug, info, warn, error), implement log file rotation and storage in .conductor/logs/, configure deno fmt and deno lint with project-specific rules, set up pre-commit hooks for code quality, create logging configuration system
+

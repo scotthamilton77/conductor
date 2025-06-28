@@ -1,0 +1,53 @@
+{
+	"meta": {
+		"generatedAt": "2025-06-28T18:13:05.260Z",
+		"tasksAnalyzed": 5,
+		"totalTasks": 5,
+		"analysisCount": 5,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": false
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Setup Core Project Infrastructure",
+			"complexityScore": 6,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Break down the project infrastructure setup into discrete components: Deno project initialization, dependency configuration, directory structure creation, development tooling setup, Git repository initialization, logging infrastructure, configuration management, and API integration setup. Each component should be independently testable and completable.",
+			"reasoning": "Moderate complexity due to multiple interconnected setup tasks requiring Deno expertise, dependency management, and foundational architecture decisions that affect the entire project."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Build File-Based State Management System",
+			"complexityScore": 7,
+			"recommendedSubtasks": 10,
+			"expansionPrompt": "Decompose the file-based state management into specific components: file system abstraction layer design, markdown parsing implementation, frontmatter schema definition, directory structure creation, CRUD operations for files, Git-friendly formatting, config.json handling, error handling and validation, and integration testing. Focus on robust file operations and data integrity.",
+			"reasoning": "High complexity due to file system operations, data persistence patterns, markdown parsing, and ensuring Git compatibility while maintaining data integrity across multiple file formats."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Develop Mode-Based Framework Foundation",
+			"complexityScore": 8,
+			"recommendedSubtasks": 12,
+			"expansionPrompt": "Break down the mode framework into architectural components: base Mode class design, mode registry pattern implementation, command routing system, state management patterns, context preservation mechanisms, prompt management system, mode switching logic, memory management, CLI integration, and framework extensibility design. Ensure clean separation of concerns and extensible architecture.",
+			"reasoning": "High complexity due to architectural design decisions, object-oriented patterns, state management across modes, and creating a flexible framework that can support multiple modes while maintaining clean abstractions."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Implement Discovery Mode",
+			"complexityScore": 9,
+			"recommendedSubtasks": 15,
+			"expansionPrompt": "Decompose Discovery mode into specific functional areas: conversation flow engine, Claude API integration, question generation algorithms, CLI interaction patterns, progressive understanding logic, example gathering workflows, vision definition features, constraint identification, insight synthesis, project.md generation, exit criteria validation, state persistence, error handling, and user experience optimization. Focus on conversational AI patterns and intelligent workflow management.",
+			"reasoning": "Very high complexity due to AI integration, conversational flow management, complex business logic for problem exploration, real-time state updates, and sophisticated user interaction patterns requiring deep understanding of AI prompting and conversation design."
+		},
+		{
+			"taskId": 11,
+			"taskTitle": "Create Command Interface and Mode Switching System",
+			"complexityScore": 5,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the command interface into components: command parser implementation, argument validation, help system creation, error handling and user feedback, command routing to core functionality, and integration testing with existing systems. Focus on clean CLI patterns and user experience.",
+			"reasoning": "Moderate complexity due to CLI parsing requirements, command validation, and integration with existing systems, but relatively straightforward compared to other tasks as it's primarily interface logic."
+		}
+	]
+}
