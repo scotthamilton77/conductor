@@ -85,8 +85,9 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
 # Install Claude Code CLI
 RUN npm install -g @anthropic-ai/claude-code
 
-# Install Task Master AI
-RUN npm install -g task-master-ai
+# Copy and install local Task Master AI package
+COPY task-master-ai-0.18.1-dev.tgz /tmp/task-master-ai-0.18.1-dev.tgz
+RUN npm install -g /tmp/task-master-ai-0.18.1-dev.tgz
 
 # Install MCP dependencies for Task Master AI
 RUN npm install -g @modelcontextprotocol/sdk fastmcp
