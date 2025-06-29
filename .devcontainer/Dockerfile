@@ -109,6 +109,9 @@ RUN git config --global init.defaultBranch main
 # Copy and source aliases
 COPY --chown=conductor:conductor aliases.sh /home/conductor/.aliases
 
+# Copy task-master completion script
+COPY --chown=conductor:conductor task-master-completion.sh /home/conductor/.task-master-completion.sh
+
 # Copy MCP setup script
 COPY --chown=conductor:conductor setup-mcp-servers.sh /home/conductor/setup-mcp-servers.sh
 RUN chmod +x /home/conductor/setup-mcp-servers.sh
@@ -116,11 +119,19 @@ RUN chmod +x /home/conductor/setup-mcp-servers.sh
 RUN echo '# Source project aliases' >> /home/conductor/.bashrc && \
   echo 'if [ -f /home/conductor/.aliases ]; then' >> /home/conductor/.bashrc && \
   echo '  source /home/conductor/.aliases' >> /home/conductor/.bashrc && \
+  echo 'fi' >> /home/conductor/.bashrc && \
+  echo '# Source task-master completion' >> /home/conductor/.bashrc && \
+  echo 'if [ -f /home/conductor/.task-master-completion.sh ]; then' >> /home/conductor/.bashrc && \
+  echo '  source /home/conductor/.task-master-completion.sh' >> /home/conductor/.bashrc && \
   echo 'fi' >> /home/conductor/.bashrc
 
 RUN echo '# Source project aliases' >> /home/conductor/.zshrc && \
   echo 'if [ -f /home/conductor/.aliases ]; then' >> /home/conductor/.zshrc && \
   echo '  source /home/conductor/.aliases' >> /home/conductor/.zshrc && \
+  echo 'fi' >> /home/conductor/.zshrc && \
+  echo '# Source task-master completion' >> /home/conductor/.zshrc && \
+  echo 'if [ -f /home/conductor/.task-master-completion.sh ]; then' >> /home/conductor/.zshrc && \
+  echo '  source /home/conductor/.task-master-completion.sh' >> /home/conductor/.zshrc && \
   echo 'fi' >> /home/conductor/.zshrc
 
 # Switch to conductor user and run MCP setup
