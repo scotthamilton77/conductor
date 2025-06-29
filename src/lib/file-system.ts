@@ -10,10 +10,15 @@ import { join } from "https://deno.land/std@0.207.0/path/mod.ts";
 const CONDUCTOR_MODES = ["discovery", "planning", "design", "build", "test", "polish"] as const;
 
 export class FileSystemManager {
-  private readonly conductorDir = ".conductor";
+  private readonly conductorDir: string;
   private readonly modes = CONDUCTOR_MODES;
 
-  constructor(private readonly basePath: string = Deno.cwd()) {}
+  constructor(
+    private readonly basePath: string = Deno.cwd(),
+    private readonly isTestMode: boolean = false,
+  ) {
+    this.conductorDir = isTestMode ? ".conductor-test" : ".conductor";
+  }
 
   /**
    * Get the full path to the .conductor directory

@@ -57,6 +57,9 @@ Thumbs.db
 .temp/
 .tmp/
 
+# Test directories
+.conductor-test/
+
 # Test coverage
 coverage/
 .nyc_output/

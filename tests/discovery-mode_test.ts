@@ -4,7 +4,7 @@
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { DiscoveryMode } from "../src/modes/discovery-mode.ts";
-import { FileOperations } from "../src/lib/file-operations.ts";
+import { testFileOperations } from "../src/lib/file-operations.ts";
 import { type Logger } from "../src/lib/types.ts";
 
 // Mock logger for testing
@@ -33,7 +33,7 @@ class MockLogger implements Logger {
 }
 
 Deno.test("DiscoveryMode - initialization", async () => {
-  const fileOps = new FileOperations();
+  const fileOps = testFileOperations;
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
@@ -53,7 +53,7 @@ Deno.test("DiscoveryMode - initialization", async () => {
 });
 
 Deno.test("DiscoveryMode - conversation flow", async () => {
-  const fileOps = new FileOperations();
+  const fileOps = testFileOperations;
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
@@ -74,7 +74,7 @@ Deno.test("DiscoveryMode - conversation flow", async () => {
 });
 
 Deno.test("DiscoveryMode - state management", async () => {
-  const fileOps = new FileOperations();
+  const fileOps = testFileOperations;
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
@@ -102,7 +102,7 @@ Deno.test("DiscoveryMode - state management", async () => {
 });
 
 Deno.test("DiscoveryMode - conversation completion", async () => {
-  const fileOps = new FileOperations();
+  const fileOps = testFileOperations;
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
@@ -130,7 +130,7 @@ Deno.test("DiscoveryMode - conversation completion", async () => {
 });
 
 Deno.test("DiscoveryMode - validation", async () => {
-  const fileOps = new FileOperations();
+  const fileOps = testFileOperations;
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
@@ -152,7 +152,7 @@ Deno.test("DiscoveryMode - validation", async () => {
 });
 
 Deno.test("DiscoveryMode - cleanup and artifact generation", async () => {
-  const fileOps = new FileOperations();
+  const fileOps = testFileOperations;
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
@@ -180,7 +180,7 @@ Deno.test("DiscoveryMode - cleanup and artifact generation", async () => {
 });
 
 Deno.test("DiscoveryMode - error handling", async () => {
-  const fileOps = new FileOperations();
+  const fileOps = testFileOperations;
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 

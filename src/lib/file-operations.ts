@@ -47,9 +47,9 @@ export class FileOperations {
   private readonly logger?: Logger;
   private readonly defaultOptions: Required<FileOperationOptions>;
 
-  constructor(_basePath?: string, logger?: Logger) {
-    // Always use project root as base path, FileSystemManager handles .conductor internally
-    this.fsManager = new FileSystemManager();
+  constructor(basePath?: string, logger?: Logger, isTestMode: boolean = false) {
+    // Use provided basePath or default to current working directory
+    this.fsManager = new FileSystemManager(basePath || Deno.cwd(), isTestMode);
     this.logger = logger;
     this.defaultOptions = {
       encoding: "utf-8",
@@ -521,3 +521,6 @@ export class FileOperations {
 
 // Default instance for common use cases
 export const fileOperations = new FileOperations();
+
+// Test instance for testing
+export const testFileOperations = new FileOperations(undefined, undefined, true);
