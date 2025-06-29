@@ -12,6 +12,8 @@ import {
   type ModeConfig,
   type ModeResult,
   type ModeState,
+  type StateMigration,
+  type StateValidationResult,
 } from "../lib/types.ts";
 
 /**
@@ -24,6 +26,10 @@ export abstract class AbstractMode implements Mode {
   protected readonly prompts: Map<string, string> = new Map();
   protected config: ModeConfig;
   protected initialized = false;
+
+  // State compression configuration
+  protected readonly COMPRESSION_THRESHOLD = 10000; // Compress if JSON size exceeds 10KB
+  protected readonly COMPRESSION_ENABLED = true;
 
   constructor(
     public readonly id: string,
@@ -150,7 +156,7 @@ export abstract class AbstractMode implements Mode {
   }
 
   /**
-   * Save mode state for context preservation
+   * Save mode state for context preservation with validation and checksumming
    */
   async saveState(state: Partial<ModeState>): Promise<void> {
     const stateId = state.id || `${this.id}-${Date.now()}`;
@@ -160,16 +166,57 @@ export abstract class AbstractMode implements Mode {
       timestamp: new Date(),
       data: {},
       artifacts: [],
+      schemaVersion: this.version,
       ...state,
     };
 
+    // Generate checksum for state integrity BEFORE compression
+    fullState.checksum = await this.generateStateChecksum(fullState);
+
+    // Apply compression if data is large
+    const dataSize = JSON.stringify(fullState.data).length;
+    if (dataSize >= this.COMPRESSION_THRESHOLD && this.COMPRESSION_ENABLED) {
+      const compressedData = this.compressStateData(fullState.data);
+      fullState.data = { _compressed: compressedData };
+      fullState.compressed = true;
+      this.logger.debug(`AI: Applied compression to state data (${dataSize} chars)`);
+    }
+
     const statePath = `state/${this.id}/${stateId}.json`;
-    await this.fileOps.writeFile(statePath, JSON.stringify(fullState, null, 2));
-    this.logger.debug(`Saved state for mode ${this.id}: ${stateId}`);
+
+    // Enhanced error recovery: retry logic with backup
+    const maxRetries = 3;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Create backup of existing state if it exists
+        if (attempt === 1 && await this.fileOps.exists(statePath)) {
+          const backupPath = `${statePath}.backup-${Date.now()}`;
+          const existingContent = await this.fileOps.readFile(statePath);
+          await this.fileOps.writeFile(backupPath, existingContent.content);
+          this.logger.debug(`AI: Created backup of existing state: ${backupPath}`);
+        }
+
+        await this.fileOps.writeFile(statePath, JSON.stringify(fullState, null, 2));
+        this.logger.debug(
+          `AI: Saved state for mode ${this.id}: ${stateId} (v${fullState.schemaVersion})`,
+        );
+        return; // Success, exit retry loop
+      } catch (error) {
+        this.logger.warn(`AI: Failed to save state (attempt ${attempt}/${maxRetries}):`, error);
+
+        if (attempt === maxRetries) {
+          this.logger.error(`AI: State save failed permanently for ${stateId}`);
+          throw error;
+        }
+
+        // Wait before retry (exponential backoff)
+        await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 100));
+      }
+    }
   }
 
   /**
-   * Load previously saved state
+   * Load previously saved state with validation and automatic migration
    */
   async loadState(stateId?: string): Promise<ModeState | null> {
     try {
@@ -189,15 +236,78 @@ export abstract class AbstractMode implements Mode {
       const statePath = `state/${this.id}/${stateId}.json`;
       const result = await this.fileOps.readFile(statePath);
       const stateData = result.content;
-      const state = JSON.parse(stateData) as ModeState;
+      let state = JSON.parse(stateData) as ModeState;
 
       // Convert timestamp string back to Date
       state.timestamp = new Date(state.timestamp);
 
-      this.logger.debug(`Loaded state for mode ${this.id}: ${stateId}`);
+      // Decompress state data if compressed
+      let needsSave = false;
+      if (
+        state.compressed && state.data && typeof state.data === "object" &&
+        state.data._compressed && typeof state.data._compressed === "string"
+      ) {
+        try {
+          state.data = this.decompressStateData(state.data._compressed);
+          state.compressed = false; // Mark as decompressed
+          // Regenerate checksum for decompressed state
+          state.checksum = await this.generateStateChecksum(state);
+          needsSave = true; // Flag that we need to save the decompressed state
+          this.logger.debug(`AI: Decompressed state data for ${stateId}`);
+        } catch (error) {
+          this.logger.error(`AI: Failed to decompress state ${stateId}:`, error);
+          throw error;
+        }
+      }
+
+      // Validate state integrity and migrate if necessary
+      const validation = await this.validateState(state);
+
+      if (!validation.isValid) {
+        this.logger.warn(
+          `AI: State validation failed for ${stateId}: ${validation.errors.join(", ")}`,
+        );
+
+        if (validation.needsMigration) {
+          this.logger.info(
+            `AI: Migrating state ${stateId} from v${validation.currentVersion} to v${validation.targetVersion}`,
+          );
+          state = await this.migrateState(state);
+          needsSave = true; // Migration requires save
+        } else {
+          return null; // State is invalid and cannot be migrated
+        }
+      } else if (validation.needsMigration) {
+        // State is valid but needs migration (legacy format)
+        this.logger.info(
+          `AI: Migrating state ${stateId} from v${validation.currentVersion} to v${validation.targetVersion}`,
+        );
+        state = await this.migrateState(state);
+        needsSave = true; // Migration requires save
+      }
+
+      // Save state if it was decompressed or migrated
+      if (needsSave) {
+        await this.saveState(state);
+        this.logger.debug(`AI: Saved updated state for ${stateId}`);
+      }
+
+      this.logger.debug(
+        `AI: Loaded state for mode ${this.id}: ${stateId} (v${state.schemaVersion || "legacy"})`,
+      );
       return state;
     } catch (error) {
-      this.logger.warn(`Failed to load state ${stateId} for mode ${this.id}:`, error);
+      this.logger.warn(`AI: Failed to load state ${stateId} for mode ${this.id}:`, error);
+
+      // Enhanced error recovery: attempt to load from backup
+      if (stateId) {
+        const backupState = await this.tryLoadBackupState(stateId);
+        if (backupState) {
+          this.logger.info(`AI: Recovered state from backup for ${stateId}`);
+          return backupState;
+        }
+      }
+
       return null;
     }
   }
@@ -223,6 +333,102 @@ export abstract class AbstractMode implements Mode {
       }
     } catch (error) {
       this.logger.warn(`Failed to clear state for mode ${this.id}:`, error);
+    }
+  }
+
+  /**
+   * Validate state integrity and schema compatibility
+   */
+  async validateState(state: ModeState): Promise<StateValidationResult> {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    let needsMigration = false;
+
+    // Basic structure validation
+    if (!state.id || typeof state.id !== "string") {
+      errors.push("Invalid or missing state ID");
+    }
+    if (!state.modeId || state.modeId !== this.id) {
+      errors.push(`State mode ID mismatch: expected ${this.id}, got ${state.modeId}`);
+    }
+    if (!state.timestamp || !(state.timestamp instanceof Date)) {
+      errors.push("Invalid or missing timestamp");
+    }
+    if (!state.data || typeof state.data !== "object") {
+      errors.push("Invalid or missing data object");
+    }
+
+    // Schema version validation
+    const currentVersion = state.schemaVersion;
+    const targetVersion = this.version;
+
+    if (!currentVersion) {
+      warnings.push("Legacy state without schema version");
+      needsMigration = true;
+    } else if (currentVersion !== targetVersion) {
+      warnings.push(`Schema version mismatch: current ${currentVersion}, target ${targetVersion}`);
+      needsMigration = true;
+    }
+
+    // Checksum validation if present (skip if state was compressed to avoid false positives)
+    if (state.checksum && !state.compressed) {
+      const expectedChecksum = await this.generateStateChecksum({ ...state, checksum: undefined });
+      if (state.checksum !== expectedChecksum) {
+        errors.push("State checksum validation failed - possible corruption");
+      }
+    } else if (!state.checksum) {
+      warnings.push("State lacks integrity checksum");
+    }
+
+    // Custom validation by concrete mode
+    try {
+      const customValidation = await this.doValidateState(state);
+      errors.push(...customValidation.errors);
+      warnings.push(...customValidation.warnings);
+      if (customValidation.needsMigration) {
+        needsMigration = true;
+      }
+    } catch (error) {
+      warnings.push(
+        `Custom validation failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      needsMigration,
+      currentVersion,
+      targetVersion,
+    };
+  }
+
+  /**
+   * Migrate state to current schema version
+   */
+  async migrateState(state: ModeState): Promise<ModeState> {
+    try {
+      // Apply built-in migrations
+      let migratedState = { ...state };
+
+      // Legacy state migration (no schema version)
+      if (!migratedState.schemaVersion) {
+        migratedState.schemaVersion = "1.0.0";
+        this.logger.debug(`AI: Migrated legacy state to v${migratedState.schemaVersion}`);
+      }
+
+      // Apply custom migrations
+      migratedState = await this.doMigrateState(migratedState);
+
+      // Update to current version and regenerate checksum
+      migratedState.schemaVersion = this.version;
+      migratedState.checksum = await this.generateStateChecksum(migratedState);
+
+      return migratedState;
+    } catch (error) {
+      this.logger.error(`AI: State migration failed for mode ${this.id}:`, error);
+      throw error;
     }
   }
 
@@ -315,6 +521,109 @@ export abstract class AbstractMode implements Mode {
     }
   }
 
+  /**
+   * Generate checksum for state integrity validation
+   */
+  protected generateStateChecksum(state: Partial<ModeState>): Promise<string> {
+    // Create a copy without checksum for consistent hashing
+    const stateForHash = { ...state };
+    delete stateForHash.checksum;
+
+    // Convert to consistent string representation
+    const stateString = JSON.stringify(stateForHash, Object.keys(stateForHash).sort());
+
+    // Generate simple hash (for demo - production should use crypto)
+    let hash = 0;
+    for (let i = 0; i < stateString.length; i++) {
+      const char = stateString.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+
+    return Promise.resolve(Math.abs(hash).toString(16));
+  }
+
+  /**
+   * Attempt to recover state from backup files
+   */
+  protected async tryLoadBackupState(stateId: string): Promise<ModeState | null> {
+    try {
+      const stateDir = `state/${this.id}`;
+      const files = await this.fileOps.listFiles(stateDir);
+
+      // Find backup files for this state
+      const backupFiles = files
+        .filter((file) => file.path.includes(`${stateId}.json.backup-`))
+        .sort((a, b) => b.path.localeCompare(a.path)); // Most recent backup first
+
+      for (const backupFile of backupFiles) {
+        try {
+          const backupPath = backupFile.path;
+          const result = await this.fileOps.readFile(backupPath);
+          const state = JSON.parse(result.content) as ModeState;
+
+          // Convert timestamp and validate
+          state.timestamp = new Date(state.timestamp);
+          const validation = await this.validateState(state);
+
+          if (validation.isValid || validation.needsMigration) {
+            this.logger.info(`AI: Successfully loaded backup state from ${backupFile.path}`);
+            return validation.needsMigration ? await this.migrateState(state) : state;
+          }
+        } catch (backupError) {
+          this.logger.debug(`AI: Backup ${backupFile.path} also corrupted:`, backupError);
+          continue;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      this.logger.debug(`AI: Backup recovery failed:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Simple compression implementation for large state data
+   * Note: In production, consider using proper compression libraries
+   */
+  protected compressStateData(data: Record<string, unknown>): string {
+    if (!this.COMPRESSION_ENABLED) return JSON.stringify(data);
+
+    const jsonString = JSON.stringify(data);
+    if (jsonString.length < this.COMPRESSION_THRESHOLD) {
+      return jsonString;
+    }
+
+    // Simple compression: remove unnecessary whitespace and apply basic encoding
+    // In production, use proper compression algorithms like gzip
+    const compressed = jsonString
+      .replace(/\s+/g, " ")
+      .replace(/","/g, '","')
+      .replace(/": "/g, '":"')
+      .replace(/": {/g, '":{')
+      .replace(/}, "/g, '},"');
+
+    this.logger.debug(
+      `AI: Compressed state data from ${jsonString.length} to ${compressed.length} chars`,
+    );
+    return compressed;
+  }
+
+  /**
+   * Decompress state data
+   */
+  protected decompressStateData(compressedData: string): Record<string, unknown> {
+    try {
+      // For our simple compression, just parse the JSON
+      // In production, implement proper decompression
+      return JSON.parse(compressedData);
+    } catch (error) {
+      this.logger.error("AI: Failed to decompress state data:", error);
+      throw new Error("State data decompression failed");
+    }
+  }
+
   // Abstract methods that concrete modes must implement
 
   /**
@@ -344,6 +653,31 @@ export abstract class AbstractMode implements Mode {
    * Initialize default prompt templates
    */
   protected abstract initializePrompts(): void;
+
+  /**
+   * Mode-specific state validation logic
+   * Override this method to provide custom state validation for the mode
+   */
+  protected doValidateState(state: ModeState): Promise<StateValidationResult> {
+    // Default implementation - no custom validation
+    return Promise.resolve({
+      isValid: true,
+      errors: [],
+      warnings: [],
+      needsMigration: false,
+      currentVersion: state.schemaVersion,
+      targetVersion: this.version,
+    });
+  }
+
+  /**
+   * Mode-specific state migration logic
+   * Override this method to provide custom state migration for the mode
+   */
+  protected doMigrateState(state: ModeState): Promise<ModeState> {
+    // Default implementation - no custom migration
+    return Promise.resolve(state);
+  }
 
   // Protected helper methods
 

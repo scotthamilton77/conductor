@@ -53,130 +53,159 @@ Deno.test("DiscoveryMode - initialization", async () => {
 });
 
 Deno.test("DiscoveryMode - conversation flow", async () => {
-  const fileOps = testFileOperations;
+  const testDir = await Deno.makeTempDir({ prefix: "conductor_test_discovery_" });
+  const fileOps = new (await import("../src/lib/file-operations.ts")).FileOperations(testDir);
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
-  await mode.initialize();
+  try {
+    await mode.initialize();
 
-  // First execution should ask the first question
-  const firstResult = await mode.execute("start");
-  assertStringIncludes(firstResult, "What problem are you trying to solve?");
-  assertStringIncludes(firstResult, "Welcome to Discovery Mode");
+    // First execution should ask the first question
+    const firstResult = await mode.execute("start");
+    assertStringIncludes(firstResult, "What problem are you trying to solve?");
+    assertStringIncludes(firstResult, "Welcome to Discovery Mode");
 
-  // Second execution with response should ask next question
-  const secondResult = await mode.execute("I need to organize my daily tasks better");
-  assertStringIncludes(secondResult, "Who experiences this problem");
+    // Second execution with response should ask next question
+    const secondResult = await mode.execute("I need to organize my daily tasks better");
+    assertStringIncludes(secondResult, "Who experiences this problem");
 
-  // Continue through a few more questions
-  const thirdResult = await mode.execute("Busy professionals and students");
-  assertStringIncludes(thirdResult, "recent time this was");
+    // Continue through a few more questions
+    const thirdResult = await mode.execute("Busy professionals and students");
+    assertStringIncludes(thirdResult, "recent time this was");
+  } finally {
+    await mode.cleanup();
+    await Deno.remove(testDir, { recursive: true });
+  }
 });
 
 Deno.test("DiscoveryMode - state management", async () => {
-  const fileOps = testFileOperations;
+  const testDir = await Deno.makeTempDir({ prefix: "conductor_test_discovery_" });
+  const fileOps = new (await import("../src/lib/file-operations.ts")).FileOperations(testDir);
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
-  await mode.initialize();
+  try {
+    await mode.initialize();
 
-  // Execute a few rounds to build state
-  await mode.execute("start");
-  await mode.execute("Task organization problem");
-  await mode.execute("Remote workers");
+    // Execute a few rounds to build state
+    await mode.execute("start");
+    await mode.execute("Task organization problem");
+    await mode.execute("Remote workers");
 
-  // Verify state is being maintained
-  const state = await mode.loadState();
-  assertExists(state);
+    // Verify state is being maintained
+    const state = await mode.loadState();
+    assertExists(state);
 
-  // Type-safe access to discovery state properties
-  const discoveryData = state.data as Record<string, unknown>;
-  const responses = (state as { responses?: string[] }).responses;
-  const insights = (state as { insights?: string[] }).insights;
+    // Type-safe access to discovery state properties
+    const discoveryData = state.data as Record<string, unknown>;
+    const responses = (state as { responses?: string[] }).responses;
+    const insights = (state as { insights?: string[] }).insights;
 
-  // After 3 executes: start (q0->1), problem (q1->2), workers (q2->3)
-  assertEquals((state as { currentQuestionIndex?: number }).currentQuestionIndex, 3);
-  assertEquals(responses?.length, 2); // "start" doesn't count as response
-  assertEquals(insights?.length, 2);
-  assertExists(discoveryData?.startTime);
+    // After 3 executes: start (q0->1), problem (q1->2), workers (q2->3)
+    assertEquals((state as { currentQuestionIndex?: number }).currentQuestionIndex, 3);
+    assertEquals(responses?.length, 2); // "start" doesn't count as response
+    assertEquals(insights?.length, 2);
+    assertExists(discoveryData?.startTime);
+  } finally {
+    await mode.cleanup();
+    await Deno.remove(testDir, { recursive: true });
+  }
 });
 
 Deno.test("DiscoveryMode - conversation completion", async () => {
-  const fileOps = testFileOperations;
+  const testDir = await Deno.makeTempDir({ prefix: "conductor_test_discovery_" });
+  const fileOps = new (await import("../src/lib/file-operations.ts")).FileOperations(testDir);
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
-  await mode.initialize();
+  try {
+    await mode.initialize();
 
-  // Go through all questions
-  const responses = [
-    "start",
-    "Task management is chaotic",
-    "Remote workers and students",
-    "Yesterday I missed three important deadlines",
-    "Clear visibility into priorities and deadlines",
-    "Must work across multiple devices and platforms",
-  ];
+    // Go through all questions
+    const responses = [
+      "start",
+      "Task management is chaotic",
+      "Remote workers and students",
+      "Yesterday I missed three important deadlines",
+      "Clear visibility into priorities and deadlines",
+      "Must work across multiple devices and platforms",
+    ];
 
-  let result;
-  for (const response of responses) {
-    result = await mode.execute(response);
+    let result;
+    for (const response of responses) {
+      result = await mode.execute(response);
+    }
+
+    // Final execution should complete the conversation
+    result = await mode.execute("final");
+    assertStringIncludes(result, "key insights");
+    assertStringIncludes(result, "Framework validation: ✅");
+  } finally {
+    await mode.cleanup();
+    await Deno.remove(testDir, { recursive: true });
   }
-
-  // Final execution should complete the conversation
-  result = await mode.execute("final");
-  assertStringIncludes(result, "key insights");
-  assertStringIncludes(result, "Framework validation: ✅");
 });
 
 Deno.test("DiscoveryMode - validation", async () => {
-  const fileOps = testFileOperations;
+  const testDir = await Deno.makeTempDir({ prefix: "conductor_test_discovery_" });
+  const fileOps = new (await import("../src/lib/file-operations.ts")).FileOperations(testDir);
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
-  await mode.initialize();
+  try {
+    await mode.initialize();
 
-  // Validation should fail with no responses
-  let validationResult = await mode.validate();
-  assertEquals(validationResult.success, false);
-  assertStringIncludes(validationResult.error!, "no responses");
+    // Validation should fail with no responses
+    let validationResult = await mode.validate();
+    assertEquals(validationResult.success, false);
+    assertStringIncludes(validationResult.error!, "no responses");
 
-  // Add some responses
-  await mode.execute("start");
-  await mode.execute("Some problem");
+    // Add some responses
+    await mode.execute("start");
+    await mode.execute("Some problem");
 
-  // Validation should now succeed
-  validationResult = await mode.validate();
-  assertEquals(validationResult.success, true);
-  assertEquals(validationResult.data, true);
+    // Validation should now succeed
+    validationResult = await mode.validate();
+    assertEquals(validationResult.success, true);
+    assertEquals(validationResult.data, true);
+  } finally {
+    await mode.cleanup();
+    await Deno.remove(testDir, { recursive: true });
+  }
 });
 
 Deno.test("DiscoveryMode - cleanup and artifact generation", async () => {
-  const fileOps = testFileOperations;
+  const testDir = await Deno.makeTempDir({ prefix: "conductor_test_discovery_" });
+  const fileOps = new (await import("../src/lib/file-operations.ts")).FileOperations(testDir);
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
-  await mode.initialize();
+  try {
+    await mode.initialize();
 
-  // Add some conversation data
-  await mode.execute("start");
-  await mode.execute("Project management challenges");
-  await mode.execute("Software development teams");
+    // Add some conversation data
+    await mode.execute("start");
+    await mode.execute("Project management challenges");
+    await mode.execute("Software development teams");
 
-  // Test cleanup
-  await mode.cleanup();
+    // Test cleanup
+    await mode.cleanup();
 
-  // Verify project.md was generated
-  const projectPath = "project.md";
-  const exists = await fileOps.exists(projectPath);
-  assertEquals(exists, true);
+    // Verify project.md was generated
+    const projectPath = "project.md";
+    const exists = await fileOps.exists(projectPath);
+    assertEquals(exists, true);
 
-  const projectResult = await fileOps.readFile(projectPath);
-  const projectContent = projectResult.content;
-  assertStringIncludes(projectContent, "# Discovery Session Results");
-  assertStringIncludes(projectContent, "Core Problem");
-  assertStringIncludes(projectContent, "Key Insights");
-  assertStringIncludes(projectContent, "discovery-stub-session");
+    const projectResult = await fileOps.readFile(projectPath);
+    const projectContent = projectResult.content;
+    assertStringIncludes(projectContent, "# Discovery Session Results");
+    assertStringIncludes(projectContent, "Core Problem");
+    assertStringIncludes(projectContent, "Key Insights");
+    assertStringIncludes(projectContent, "discovery-stub-session");
+  } finally {
+    await Deno.remove(testDir, { recursive: true });
+  }
 });
 
 Deno.test("DiscoveryMode - error handling", async () => {

@@ -69,6 +69,34 @@ export interface ModeState {
   timestamp: Date;
   data: Record<string, unknown>;
   artifacts: string[];
+  /** Schema version for state migration support */
+  schemaVersion?: string;
+  /** Checksum for state integrity validation */
+  checksum?: string;
+  /** Indicates if state data is compressed */
+  compressed?: boolean;
+}
+
+/**
+ * State validation result interface
+ */
+export interface StateValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  needsMigration: boolean;
+  currentVersion?: string;
+  targetVersion?: string;
+}
+
+/**
+ * State migration interface
+ */
+export interface StateMigration {
+  fromVersion: string;
+  toVersion: string;
+  migrate(state: ModeState): Promise<ModeState>;
+  validate?(state: ModeState): Promise<StateValidationResult>;
 }
 
 /**
@@ -110,6 +138,10 @@ export interface Mode {
   saveState(state: Partial<ModeState>): Promise<void>;
   loadState(stateId?: string): Promise<ModeState | null>;
   clearState(stateId?: string): Promise<void>;
+
+  // Enhanced state management
+  validateState(state: ModeState): Promise<StateValidationResult>;
+  migrateState(state: ModeState): Promise<ModeState>;
 
   // Configuration and validation
   configure(config: Partial<ModeConfig>): Promise<void>;
