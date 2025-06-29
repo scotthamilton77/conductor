@@ -7,6 +7,7 @@ This document outlines the architecture for the Conductor Mode System - a plugga
 ## Current State Analysis
 
 ### Existing Infrastructure
+
 - **CLI Framework**: Cliffy-based command structure with placeholder mode commands
 - **Configuration System**: Comprehensive config management with mode-specific settings
 - **File Operations**: Robust file I/O with atomic writes and Git-friendly formatting
@@ -15,6 +16,7 @@ This document outlines the architecture for the Conductor Mode System - a plugga
 - **Logging**: Structured logging with multiple levels and file persistence
 
 ### Existing Mode Interface (types.ts)
+
 ```typescript
 export interface Mode {
   name: string;
@@ -399,7 +401,8 @@ export class PromptManager {
 ## Interaction Flow Diagrams
 
 ### Mode Initialization Flow
-```
+
+```text
 User Command → CLI Parser → ModeCommandRouter → ModeRegistry → ModeFactory
                                 ↓
 StateManager ← ModeContext ← AbstractMode ← Dependencies Injection
@@ -408,7 +411,8 @@ PromptManager ← Mode.initialize() → FileOperations → Ready State
 ```
 
 ### Command Execution Flow
-```
+
+```text
 User Input → CLI Parser → ModeCommandRouter.routeCommand()
                                ↓
 CurrentMode.validateInput() → CurrentMode.handleCommand()
@@ -423,7 +427,8 @@ StateManager.saveState() → FileOperations.writeFile() → Response
 ```
 
 ### Mode Switching Flow
-```
+
+```text
 Switch Command → ModeCommandRouter.switchMode()
                       ↓
 CurrentMode.cleanup() → StateManager.saveState()
@@ -473,6 +478,7 @@ export class DiscoveryMode extends AbstractMode {
 ```
 
 **Key Discovery Mode Behaviors**:
+
 - **Problem-first approach**: Always starts with understanding the problem, not jumping to solutions
 - **Socratic questioning**: Asks "why" and "tell me more" to build deeper understanding
 - **Concrete grounding**: Converts abstract ideas into specific, measurable examples
@@ -482,6 +488,7 @@ export class DiscoveryMode extends AbstractMode {
 - **Complexity awareness**: Complexity Watchdog prevents over-complex problem framings
 
 **Discovery Artifacts**:
+
 - Living project document (`.conductor/project.md`) with problem space, success criteria, and constraints
 - Agent perspectives on security considerations and complexity implications
 - Conversation history with key insights, assumptions, and agent feedback
@@ -532,6 +539,7 @@ export class AnalyzeMode extends AbstractMode {
 ```
 
 **Key Analyze Mode Behaviors**:
+
 - **Technical focus**: Deep dive into code structure, patterns, and technical decisions
 - **Systematic exploration**: Methodical analysis of different system aspects
 - **Pattern recognition**: Identifies architectural patterns, anti-patterns, and opportunities
@@ -541,6 +549,7 @@ export class AnalyzeMode extends AbstractMode {
 - **Complexity assessment**: Complexity Watchdog identifies over-engineering patterns and simplification opportunities
 
 **Analyze Artifacts**:
+
 - Codebase analysis reports with findings and recommendations
 - Security audit results with threat analysis and vulnerability assessments
 - Complexity analysis with simplification recommendations
@@ -551,16 +560,19 @@ export class AnalyzeMode extends AbstractMode {
 ## Integration Points
 
 ### With Existing CLI System
+
 - Extend current Cliffy command structure with dynamic mode commands
 - Integrate with existing config validation and logging
 - Preserve current help system and error handling patterns
 
 ### With File Operations
+
 - Use FileOperations API for all mode state persistence
 - Leverage atomic writes for critical state updates
 - Utilize markdown handling for structured outputs
 
 ### With Configuration System
+
 - Extend existing Config interface with mode-specific settings
 - Use ConfigManager for mode preferences and defaults
 - Support runtime configuration updates
@@ -568,16 +580,19 @@ export class AnalyzeMode extends AbstractMode {
 ## Security and Validation
 
 ### Input Validation
+
 - Command argument validation per mode
 - File path sanitization for mode operations
 - User input sanitization for AI interactions
 
 ### State Validation
+
 - Schema validation for serialized state
 - Corruption detection and recovery
 - Version compatibility checks
 
 ### Access Control
+
 - Mode-specific permission systems
 - File operation boundaries
 - API key management per mode
@@ -585,16 +600,19 @@ export class AnalyzeMode extends AbstractMode {
 ## Testing Strategy
 
 ### Unit Testing
+
 - Mock dependencies for isolated mode testing
 - Validation logic testing with edge cases
 - State serialization/deserialization testing
 
 ### Integration Testing
+
 - CLI command routing end-to-end
 - State persistence across mode sessions
 - Cross-mode context preservation
 
 ### Performance Testing
+
 - Mode initialization time
 - Large codebase analysis performance
 - Memory usage during long sessions
@@ -602,6 +620,7 @@ export class AnalyzeMode extends AbstractMode {
 ## Migration and Extensibility
 
 ### Adding New Modes
+
 1. Extend AbstractMode class
 2. Register with ModeRegistry
 3. Define mode-specific commands
@@ -609,33 +628,106 @@ export class AnalyzeMode extends AbstractMode {
 5. Add configuration schema
 
 ### Backward Compatibility
+
 - Version compatibility matrix
 - State migration strategies
 - Graceful degradation for missing modes
 
 ## Implementation Phases
 
-### Phase 1 (Current Task)
-- Core abstractions and interfaces
-- Mode registry and factory
-- Basic Discovery mode implementation
-- CLI integration foundation
-- Cross-cutting agent framework foundation
-- Basic Complexity Watchdog agent
+### Phase 1: Foundation + Discovery Mode (CURRENT)
 
-### Phase 2 (Future)
-- Advanced state management
-- Prompt template system including agent templates
-- Multi-mode workflows with agent integration
+**Scope**: Minimal viable CLI with basic mode system
+
+**Key Components**:
+
+- Core abstractions and interfaces (AbstractMode, ModeRegistry, ModeFactory)
+- Basic Discovery mode implementation (conversational problem exploration)
+- CLI integration foundation (basic commands: init, discover, status)
+- Simple state management and context preservation
+- Basic prompt management (single AI agent approach)
+
+**Agent Integration**: DEFERRED - Phase 1 uses simple AI interaction without cross-cutting agents
+
+### Phase 2: Agent Integration + Enhanced Features  
+
+**Scope**: Cross-cutting agent framework and enhanced mode capabilities
+
+**Key Components**:
+
+- Cross-cutting agent framework foundation (CrossCuttingAgent interface, AgentFeedback types)
+- Basic Complexity Watchdog agent with rule-based evaluation
+- Security Agent foundation for threat analysis
 - Security Agent implementation with threat modeling
-- Performance optimizations
+- Agent integration methods in AbstractMode (evaluateWithAgents, incorporateAgentFeedback)
+- AgentRegistry system for managing cross-cutting agents
+- Enhanced command execution flow with agent evaluation
+- Prompt template system including agent templates
+- Agent-specific prompt templates and generation
+- Code architecture refactoring for maintainability
+- Analyze mode for technical codebase analysis with agent integration
 
-### Phase 3 (Future)
+### Phase 3: Planning Mode + Build Mode Foundation
+
+**Scope**: Complete planning workflow and implementation capabilities with end-to-end validation
+
+**Key Components**:
+
+- Planning mode with aperture control (roadmap through task levels)
+- Build mode with task execution and code generation
+- Progress tracking and build artifacts
+- Integration with git for commit workflows
+- Basic quality gates (syntax checking, linting integration)
+- Complete end-to-end workflow validation
+- Advanced state management and cross-mode context preservation
+- Conductor directory architecture redesign
+- Multi-mode workflows with agent integration
+
+### Phase 4: Production Readiness + Documentation
+
+**Scope**: Production-ready CLI with comprehensive documentation
+
+**Key Components**:
+
+- Enhanced CLI experience and robust error handling
+- CLAUDE.md optimization and reusable template creation
+- Performance optimizations and security considerations
+- Distribution packaging and comprehensive documentation
+
+### Phase 5: Interactive Features + Claude Code Integration
+
+**Scope**: Interactive capabilities and Claude Code command integration
+
+**Key Components**:
+
+- Interactive CLI sessions with conversational flows
+- Claude Code command wrappers and MCP tool implementation
+- Natural language command interface
+- Cross-agent coordination and conflict resolution
+- Enhanced conversation flows with context awareness
+
+### Phase 6: Additional Modes + Advanced Features
+
+**Scope**: Complete mode ecosystem and advanced AI capabilities
+
+**Key Components**:
+
+- Test mode with scenario generation and validation
+- Design mode with mockup generation capabilities
+- Polish mode with improvement suggestions
 - Plugin system for external modes and custom agents
 - Advanced AI interaction patterns with agent collaboration
-- Collaborative mode features with shared agent insights
-- UI integration points with agent feedback visualization
 - Machine learning-based agent improvement
-- Cross-agent coordination and conflict resolution
+- Cross-mode analytics and workflow optimization
 
-This architecture provides a solid foundation for implementing the mode system while maintaining compatibility with the existing codebase and supporting future extensibility.
+### Phase 7: Web UI + Dashboard
+
+**Scope**: Real-time dashboard and web interface capabilities
+
+**Key Components**:
+
+- Web-based dashboard with real-time monitoring
+- Agent feedback visualization and interactive control
+- UI integration points with agent feedback visualization
+- Collaborative mode features with shared agent insights
+- Advanced UI integration points

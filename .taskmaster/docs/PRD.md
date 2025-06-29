@@ -679,39 +679,48 @@ confidence: high|medium|low
 - `project.md` generation and updates with frontmatter
 - Basic error handling and logging
 
-### Phase 2: Planning Mode + Context Management (Weeks 5-8)
-**Goal**: Add planning workflow and validate mode transitions
+### Phase 2: Agent Integration + Enhanced Features (Weeks 5-8)
+**Goal**: Add cross-cutting agent framework and enhanced mode capabilities
+**Deliverables**:
+- Cross-cutting agent framework foundation (interfaces and base classes)
+- Complexity Watchdog agent with basic rule-based evaluation
+- Security Agent foundation for threat analysis
+- Agent integration methods in AbstractMode (evaluateWithAgents, incorporateAgentFeedback)
+- AgentRegistry system for managing cross-cutting agents
+- Enhanced command execution flow with agent evaluation
+- Agent-specific prompt templates and generation
+- Code architecture refactoring for maintainability
+- Analyze mode for technical codebase analysis with agent integration
+
+### Phase 3: Planning Mode + Build Mode Foundation (Weeks 9-12)
+**Goal**: Add planning workflow and implementation capabilities with complete end-to-end workflow
 **Deliverables**:
 - Planning mode with aperture control (roadmap through task levels)
 - Mode transitions via CLI commands: `conductor plan [prompt]`
 - Planning hierarchy implementation (Roadmap → Sprint → Task levels)
 - `plan.md` generation with appropriate detail levels
 - Cross-mode context preservation and artifact linking
-- Agent-suggested mode transitions within CLI sessions
-- Basic exit criteria validation for mode transitions
-
-### Phase 3: Build Mode + End-to-End Workflow (Weeks 9-12)
-**Goal**: Add implementation capability for complete Discovery → Planning → Build workflow
-**Deliverables**:
 - Build mode with task execution and code generation
 - CLI command: `conductor build [prompt]`
 - Basic code generation using Claude API
 - File modification capabilities with backup/rollback
-- Progress tracking and build artifacts
-- Integration with git for commit workflows
-- Basic quality gates (syntax checking, linting integration)
-- Complete end-to-end workflow validation
+- **Progress tracking and build artifacts**
+- **Integration with git for commit workflows**
+- **Basic quality gates (syntax checking, linting integration)**
+- **Complete end-to-end workflow validation**
+- Conductor directory architecture redesign and task management integration
 
-### Phase 4: Production Readiness + CLI Polish (Weeks 13-16)
-**Goal**: Production-ready CLI with robust UX and reliability
+### Phase 4: Production Readiness + Documentation (Weeks 13-16)
+**Goal**: Production-ready CLI with robust UX and comprehensive documentation
 **Deliverables**:
 - Enhanced CLI experience (colors, progress indicators, help systems)
 - Robust error handling and recovery mechanisms
 - Performance optimization and file operation safety
-- Comprehensive documentation and onboarding
+- CLAUDE.md optimization and reusable template creation
 - Command completion and help systems
 - Security considerations and API key management
 - Distribution packaging (Deno compile, npm package)
+- Comprehensive documentation and onboarding materials
 
 ### Phase 5: Interactive Features + Claude Code Integration (Weeks 17-20)
 **Goal**: Add interactive capabilities and Claude Code command integration
@@ -732,6 +741,8 @@ confidence: high|medium|low
 - Advanced AI features (pattern recognition, personalized recommendations)
 - Cross-mode analytics and workflow optimization
 - Quality gate enhancements and automated validation
+- Agent-suggested mode transitions within CLI sessions
+- Basic exit criteria validation for mode transitions
 
 ### Phase 7: Ecosystem Integration + Web UI (Months 7-10)
 **Goal**: Platform integration and multi-interface support
