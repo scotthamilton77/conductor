@@ -191,6 +191,203 @@ export class DiscoveryStateManager {
 }
 ```
 
+### Questions Todo List System
+
+Discovery Mode employs a sophisticated question management system that prevents overwhelming users with multiple questions while maintaining conversational flow. This system is inspired by Claude Code's todo functionality but adapted for Socratic questioning.
+
+#### Question Queue Management
+
+```typescript
+interface QuestionTodo {
+  questionId: QuestionId;
+  question: Question;
+  priority: QuestionPriority;
+  status: QuestionStatus;
+  category: SocraticCategory;
+  dependencies?: QuestionId[]; // Questions that should be asked first
+  context: QuestionContext;
+  userDeferredReason?: string;
+  createdAt: Date;
+}
+
+enum QuestionStatus {
+  PENDING = "pending",
+  ASKED = "asked", 
+  ANSWERED = "answered",
+  DEFERRED = "deferred",
+  OBSOLETE = "obsolete"
+}
+
+enum QuestionPriority {
+  CRITICAL = "critical",  // Must be answered for progress
+  HIGH = "high",         // Important for understanding
+  MEDIUM = "medium",     // Valuable but not essential
+  LOW = "low"           // Nice to know
+}
+
+class QuestionTodoManager {
+  private questionQueue: Map<QuestionId, QuestionTodo> = new Map();
+  private currentQuestion: QuestionTodo | null = null;
+  
+  // Queue management
+  async queueQuestion(question: Question, priority: QuestionPriority, context: QuestionContext): Promise<QuestionId>;
+  async getNextQuestion(): Promise<QuestionTodo | null>;
+  async markQuestionAnswered(questionId: QuestionId): Promise<void>;
+  async deferQuestion(questionId: QuestionId, reason?: string): Promise<void>;
+  
+  // User interface
+  async showPendingQuestions(): Promise<QuestionSummary[]>;
+  async prioritizeQuestion(questionId: QuestionId): Promise<void>;
+  async removeObsoleteQuestions(context: ConversationContext): Promise<void>;
+  
+  // Flow control
+  async shouldAskNextQuestion(userResponse: string): Promise<boolean>;
+  async generateFollowUpQuestions(response: ProcessedInput): Promise<Question[]>;
+}
+```
+
+#### Conversational Flow with Question Management
+
+The system maintains natural conversation flow while managing question queues internally:
+
+```typescript
+class ConversationFlow {
+  async processUserInput(input: string): Promise<ConversationResponse> {
+    // 1. Process user response to current question
+    const processedInput = await this.analyzeResponse(input);
+    
+    // 2. Mark current question as answered
+    if (this.questionManager.currentQuestion) {
+      await this.questionManager.markQuestionAnswered(
+        this.questionManager.currentQuestion.questionId
+      );
+    }
+    
+    // 3. Extract insights and generate follow-up questions
+    const insights = await this.insightAnalyzer.extractInsights(processedInput);
+    const followUps = await this.questionManager.generateFollowUpQuestions(processedInput);
+    
+    // 4. Queue new questions without asking immediately
+    for (const question of followUps) {
+      await this.questionManager.queueQuestion(question, question.priority, context);
+    }
+    
+    // 5. Determine next action based on user cues
+    return await this.generateResponse(processedInput, insights);
+  }
+  
+  async generateResponse(input: ProcessedInput, insights: Insight[]): Promise<string> {
+    // Check if user indicated they want to continue, change topics, etc.
+    const userIntent = await this.detectUserIntent(input);
+    
+    if (userIntent.wantsToContinue) {
+      const nextQuestion = await this.questionManager.getNextQuestion();
+      if (nextQuestion) {
+        return this.formatQuestionResponse(insights, nextQuestion);
+      }
+    }
+    
+    // Otherwise, acknowledge insights and ask if they're ready for next question
+    return this.formatAcknowledgmentResponse(insights);
+  }
+  
+  private formatQuestionResponse(insights: Insight[], question: QuestionTodo): string {
+    return `${this.acknowledgeInsights(insights)}
+
+${question.question.text}`;
+  }
+  
+  private formatAcknowledgmentResponse(insights: Insight[]): string {
+    return `${this.acknowledgeInsights(insights)}
+
+Are you ready for my next question?`;
+  }
+}
+```
+
+#### User Experience Flow
+
+```text
+User: "We're having trouble with our inventory system during peak hours"
+
+AI: That sounds challenging. Can you walk me through what happens when 
+    inventory runs out during peak hours?
+
+User: [Provides detailed response about customer impact and staff confusion]
+
+AI: I can see this affects both customers and staff significantly. 
+    Are you ready for my next question?
+
+User: Yes
+
+AI: Who else in your organization feels the impact when this happens?
+
+[Natural flow continues...]
+```
+
+The system queues related questions internally (about specific peak times, frequency, current workarounds, etc.) but presents them one at a time based on user readiness and conversation flow.
+
+### Discovery Sub-modes
+
+Discovery Mode supports different interaction styles to match user preferences and context:
+
+```typescript
+enum DiscoverySubMode {
+  GUIDED = "guided",        // AI proactively suggests options and directions
+  RESPONSIVE = "responsive", // AI waits for user direction and explicit requests
+  COLLABORATIVE = "collaborative" // Adaptive - offers help when user seems uncertain
+}
+
+interface DiscoveryModeConfig {
+  subMode: DiscoverySubMode;
+  suggestionTriggers?: SuggestionTriggers;
+  questionDepth: QuestionDepth;
+  adaptiveThresholds?: AdaptiveThresholds;
+}
+
+interface SuggestionTriggers {
+  onSilence: boolean;      // Offer suggestions after user pause
+  onUncertainty: boolean;  // When user expresses confusion or "I don't know"
+  onCompletion: boolean;   // After fully answering questions
+  onTopicShift: boolean;   // When user tries to change subjects
+}
+
+class SubModeManager {
+  async adaptInteractionStyle(subMode: DiscoverySubMode, context: ConversationContext): Promise<void>;
+  async detectUserUncertainty(response: string): Promise<boolean>;
+  async generateContextualSuggestions(context: ConversationContext): Promise<string[]>;
+  async switchSubMode(newMode: DiscoverySubMode): Promise<void>;
+}
+```
+
+#### Sub-mode Behaviors
+
+**Guided Sub-mode**:
+```text
+That really helps me understand the urgency. Are you ready for my next question?
+
+Or would you prefer to:
+- Explore who else is affected by this problem
+- Define what success would look like
+- Continue with inventory scenarios
+```
+
+**Responsive Sub-mode**:
+```text
+That really helps me understand the urgency. Are you ready for my next question?
+
+[Waits for user direction, only offers suggestions if explicitly asked]
+```
+
+**Collaborative Sub-mode** (adaptive):
+```text
+That really helps me understand the urgency. Are you ready for my next question?
+
+[If user shows engagement: continues naturally]
+[If user hesitates or seems uncertain: offers gentle guidance]
+[If user explicitly asks for options: provides suggestions]
+```
+
 ### Conversation Flow Architecture
 
 #### State Machine Design

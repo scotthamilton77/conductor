@@ -298,11 +298,41 @@
         ],
         "priority": "medium",
         "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Implement Topic Relationship System for Cross-Phase Discussion Threading",
+        "description": "Build a comprehensive topic relationship system that enables linking and tracking related discussion threads across all project phases (Discovery, Planning, Design, Build) with semantic relationship types and priority ratings.",
+        "details": "Create TopicRelationshipManager class that handles seven relationship types: REDUNDANT_WITH (duplicate topics), RELATES_TO (general connection), BLOCKED_BY (dependency blocking), ANSWERS (resolution relationship), INVALIDATES (contradiction), SPAWNED_FROM (derivation), and MERGED_INTO (consolidation). Implement TopicNode data structure with unique IDs, phase context, creation timestamps, and relationship mappings. Build relationship validation logic to prevent circular dependencies and enforce semantic consistency. Create priority rating system (1-5 scale) for relationship strength and importance. Implement cross-phase linking that maintains topic continuity as projects evolve from discovery through build phases. Build topic branching functionality allowing topics to split into multiple related discussions. Design cross-referencing system with bidirectional relationship tracking and automatic backlink generation. Integrate with existing .conductor/ file structure using topics/ subdirectory with phase-specific organization. Implement relationship persistence using JSON format with human-readable relationship descriptions. Create topic search and filtering capabilities by relationship type, phase, and priority. Build topic merging workflows for consolidating related discussions. Ensure thread-like discussion flow similar to Slack but with enhanced semantic relationships and cross-phase persistence.",
+        "testStrategy": "Test all seven relationship types with sample topics across different phases, verify relationship validation prevents circular dependencies, validate priority rating system accuracy, test topic branching creates proper parent-child relationships, verify cross-phase linking maintains data integrity, test bidirectional relationship tracking and backlink generation, validate topic search and filtering functionality, test topic merging workflows with conflict resolution, verify persistence layer correctly saves and loads relationship data, test integration with existing .conductor/ structure, and validate thread-like discussion flow with semantic enhancement.",
+        "status": "pending",
+        "dependencies": [
+          3,
+          4,
+          5
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Implement Automatic Topic Similarity Detection and Merge Suggestions",
+        "description": "Build an intelligent system that analyzes topic content, titles, and discussion patterns to detect similar topics and provide user-friendly merge workflows with conflict resolution for overlapping discussions.",
+        "details": "Create TopicSimilarityEngine class that implements content analysis using semantic similarity algorithms (cosine similarity with TF-IDF vectors or embeddings). Build TopicAnalyzer that examines title similarity using string distance metrics (Levenshtein, Jaro-Winkler), content overlap analysis, and discussion pattern matching. Implement SimilarityScorer that combines multiple factors: title similarity weight (0.4), content similarity weight (0.3), discussion pattern similarity weight (0.2), and temporal proximity weight (0.1) to generate confidence scores. Create MergeSuggestionEngine that identifies merge candidates above configurable threshold (default 0.75), groups related topics into merge clusters, and ranks suggestions by confidence and impact. Build TopicMergeWorkflow with user-friendly CLI prompts showing side-by-side topic comparisons, merge preview with combined content, and step-by-step merge confirmation process. Implement ConflictResolver for handling overlapping discussions by preserving all unique content, merging participant lists, combining timestamps chronologically, and resolving conflicting metadata through user prompts. Create MergeExecutor that updates topic relationships, preserves discussion history, updates cross-references in related topics, and maintains audit trail of merge operations. Integrate with existing TopicRelationshipManager to leverage REDUNDANT_WITH and MERGED_INTO relationship types. Add configuration options for similarity thresholds, analysis weights, and auto-merge capabilities for high-confidence matches.",
+        "testStrategy": "Test similarity detection with various topic pairs including identical topics (should score >0.9), highly similar topics (0.7-0.9), moderately similar topics (0.4-0.7), and unrelated topics (<0.4). Verify merge suggestion ranking prioritizes most similar and impactful merges. Test merge workflow with user interactions including acceptance, rejection, and modification of merge suggestions. Validate conflict resolution handles overlapping discussions, participant merging, and metadata conflicts correctly. Test integration with TopicRelationshipManager ensures proper relationship updates and prevents data corruption. Verify audit trail maintains complete merge history and rollback capabilities. Test performance with large topic datasets and validate configurable thresholds work as expected.",
+        "status": "pending",
+        "dependencies": [
+          3,
+          5,
+          13
+        ],
+        "priority": "low",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-06-29T15:24:43.165Z",
-      "updated": "2025-06-29T17:11:57.623Z",
+      "updated": "2025-06-29T17:25:07.610Z",
       "description": "Phase 1: Foundation + Discovery Mode - Minimal viable CLI with basic mode system (no agent integration)"
     }
   },
