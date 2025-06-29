@@ -11,6 +11,10 @@ import { ConsoleLogger } from "./lib/logger.ts";
 import { Confirm, Input, Select } from "@cliffy/prompt";
 import { exists } from "@std/fs";
 import { dirname, join } from "@std/path";
+import { FileOperations } from "./lib/file-operations.ts";
+import { type ModeContext, ModeFactory, ModeRegistry } from "./lib/mode-registry.ts";
+import { type Logger, type ModeConfig } from "./lib/types.ts";
+import { AbstractMode } from "./modes/abstract-mode.ts";
 
 const VERSION = "0.1.0";
 
@@ -51,13 +55,92 @@ export function createCLI() {
     .command("discover", "Start discovery mode for problem exploration")
     .arguments("[prompt:string]")
     .description("Enter discovery mode to explore and understand problems")
-    .action((options, prompt?: string) => {
+    .option("--session-id <id:string>", "Resume a specific discovery session")
+    .option("--export <path:string>", "Export session results to specified path")
+    .action(async (options, prompt?: string) => {
       console.log("🔍 Starting discovery mode...");
-      if (prompt) {
-        console.log(`Initial prompt: ${prompt}`);
+
+      try {
+        // Check if verbose flag was passed in arguments
+        const isVerbose = Deno.args.includes("--verbose");
+
+        // Initialize mode system dependencies
+        const fileOps = new FileOperations(".conductor");
+        const logger = new ConsoleLogger(isVerbose ? "debug" : "info");
+
+        // Create mode registry and factory
+        const registry = new ModeRegistry(fileOps, logger);
+        await registry.initialize();
+
+        // Register DiscoveryMode
+        const { DiscoveryMode } = await import("./modes/discovery-mode.ts");
+
+        // Create a wrapper class that matches the expected constructor signature
+        class DiscoveryModeWrapper extends DiscoveryMode {
+          constructor(
+            _id: string,
+            _name: string,
+            _description: string,
+            _version: string,
+            _dependencies: string[],
+            fileOps: FileOperations,
+            logger: Logger,
+            _initialConfig?: Partial<ModeConfig>,
+          ) {
+            super(fileOps, logger);
+          }
+        }
+
+        registry.register("discovery", {
+          modeClass: DiscoveryModeWrapper,
+          config: {
+            version: "1.0.0-stub",
+            enabled: true,
+            description: "Conversational problem exploration through Socratic questioning",
+            dependencies: [],
+          },
+          isEnabled: true,
+          loadPriority: 10,
+          metadata: {
+            category: "exploration",
+            tags: ["problem-solving", "conversation", "exploration"],
+          },
+        });
+
+        // Create mode instance
+        const factory = new ModeFactory(registry, logger);
+        const context: ModeContext = {
+          projectPath: Deno.cwd(),
+          sessionData: {
+            sessionId: options.sessionId || `discovery-${Date.now()}`,
+            exportPath: options.export,
+          },
+        };
+
+        const discoveryMode = await factory.createMode("discovery", context);
+
+        // Initialize the mode
+        await discoveryMode.initialize();
+
+        // Start interactive discovery session
+        await runDiscoverySession(discoveryMode, prompt, logger);
+
+        // Cleanup
+        await discoveryMode.cleanup();
+        await registry.destroyAll();
+
+        console.log("\n✅ Discovery session completed!");
+
+        if (options.export) {
+          console.log(`📁 Session exported to: ${options.export}`);
+        }
+      } catch (error) {
+        console.error(
+          "❌ Discovery mode failed:",
+          error instanceof Error ? error.message : String(error),
+        );
+        Deno.exit(1);
       }
-      // TODO(#4): Implement discovery mode
-      console.log("Discovery mode ready!");
     });
 
   cmd
@@ -295,4 +378,68 @@ export function createCLI() {
 export function initializeLogging(options: { verbose?: boolean; quiet?: boolean }) {
   const logLevel = options.verbose ? "debug" : options.quiet ? "error" : "info";
   return new ConsoleLogger(logLevel as "debug" | "info" | "warn" | "error");
+}
+
+/**
+ * Run interactive discovery session
+ */
+async function runDiscoverySession(
+  discoveryMode: AbstractMode,
+  initialPrompt: string | undefined,
+  logger: Logger,
+): Promise<void> {
+  logger.info("Starting interactive discovery session");
+
+  // Execute with initial prompt if provided
+  let result = await discoveryMode.executeWithResult<string>(initialPrompt || "");
+
+  if (!result.success) {
+    throw new Error(result.error || "Failed to start discovery session");
+  }
+
+  // Display initial response
+  if (result.data && typeof result.data === "string") {
+    console.log("\n" + result.data);
+  }
+
+  // Continue conversation loop
+  while (true) {
+    // Get user input
+    const userInput = await Input.prompt({
+      message: "\n>",
+      hint: "Type your response or 'exit' to end session",
+    });
+
+    if (userInput.toLowerCase() === "exit") {
+      break;
+    }
+
+    // Execute with user input
+    result = await discoveryMode.executeWithResult<string>(userInput);
+
+    if (!result.success) {
+      logger.error("Error in discovery session:", result.error);
+      const shouldContinue = await Confirm.prompt({
+        message: "An error occurred. Continue session?",
+        default: true,
+      });
+
+      if (!shouldContinue) {
+        break;
+      }
+      continue;
+    }
+
+    // Display response
+    if (result.data && typeof result.data === "string") {
+      console.log("\n" + result.data);
+
+      // Check if session is complete
+      if (result.data.includes("Discovery session complete!")) {
+        break;
+      }
+    }
+  }
+
+  logger.info("Discovery session ended");
 }

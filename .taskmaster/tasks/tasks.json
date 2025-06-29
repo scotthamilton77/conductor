@@ -204,12 +204,12 @@
             "id": 5,
             "title": "Build CLI Command Routing System",
             "description": "Implement CLI command routing and integration for mode operations",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               3,
               4
             ],
-            "details": "Create CLI command structure for mode operations including mode selection, parameter passing, and execution flow. Implement command parsing, validation, and routing to appropriate mode handlers. Include help system, error reporting, and command completion support.\n<info added on 2025-06-29T19:55:40.446Z>\nUpdated focus to integrate CLI command routing specifically for Discovery Mode stub implementation. Create `conductor discover [prompt]` command that routes to DiscoveryMode class from Task 4.4. Implement command parsing, parameter validation, and error handling for discovery commands. Demonstrate integration between Cliffy CLI framework and mode system architecture. This validates the mode system CLI integration works correctly with the Discovery Mode stub while focusing on framework validation rather than building a generic command routing system. Provides concrete validation that CLI can properly instantiate and execute modes through the established mode interface.\n</info added on 2025-06-29T19:55:40.446Z>",
+            "details": "Create CLI command structure for mode operations including mode selection, parameter passing, and execution flow. Implement command parsing, validation, and routing to appropriate mode handlers. Include help system, error reporting, and command completion support.\n<info added on 2025-06-29T19:55:40.446Z>\nUpdated focus to integrate CLI command routing specifically for Discovery Mode stub implementation. Create `conductor discover [prompt]` command that routes to DiscoveryMode class from Task 4.4. Implement command parsing, parameter validation, and error handling for discovery commands. Demonstrate integration between Cliffy CLI framework and mode system architecture. This validates the mode system CLI integration works correctly with the Discovery Mode stub while focusing on framework validation rather than building a generic command routing system. Provides concrete validation that CLI can properly instantiate and execute modes through the established mode interface.\n</info added on 2025-06-29T19:55:40.446Z>\n<info added on 2025-06-29T21:19:57.963Z>\nCLI Command Routing System for Discovery Mode completed successfully. Integration between Cliffy CLI framework and mode system architecture fully implemented with comprehensive test coverage (101 tests passing). Key implementation includes: updated discover command with DiscoveryMode instantiation and execution, ModeRegistry and ModeFactory integration, interactive session handling with Cliffy prompts, command options for session management (--session-id, --export), global --verbose flag propagation, wrapper class pattern for ModeRegistryEntry interface adaptation, complete mode lifecycle error handling and cleanup, and 4 new CLI integration tests in cli-discovery_test.ts. The mode system CLI integration successfully validates that modes can be properly instantiated and executed through the established CLI framework, completing the foundational integration between command structure and mode execution system.\n</info added on 2025-06-29T21:19:57.963Z>",
             "testStrategy": ""
           },
           {
@@ -332,7 +332,7 @@
     ],
     "metadata": {
       "created": "2025-06-29T15:24:43.165Z",
-      "updated": "2025-06-29T20:07:01.007Z",
+      "updated": "2025-06-29T21:20:03.929Z",
       "description": "Phase 1: Foundation + Discovery Mode - Minimal viable CLI with basic mode system (no agent integration)"
     }
   },

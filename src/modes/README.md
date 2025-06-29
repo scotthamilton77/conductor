@@ -87,7 +87,7 @@ Optional lifecycle hooks allow modes to observe and react to execution events wi
 
 ## File Organization
 
-```
+```text
 .conductor/
 ├── modes/           # Mode-specific configuration and prompts
 │   └── {mode-id}/
