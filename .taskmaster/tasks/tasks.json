@@ -193,11 +193,11 @@
             "id": 4,
             "title": "Implement Discovery Mode",
             "description": "Create the Discovery mode as the first concrete implementation of the mode system",
-            "status": "pending",
+            "status": "in-progress",
             "dependencies": [
               2
             ],
-            "details": "Implement Discovery mode extending the Mode base class. Include discovery-specific logic for problem exploration through conversational discovery methods. Implement mode-specific prompts, context handling, and output formatting. This serves as the reference implementation for other modes.\n<info added on 2025-06-29T12:39:39.512Z>\nDiscovery mode has been redefined based on PRD analysis. The mode is now focused on conversational problem exploration rather than codebase analysis (which is handled by the new Analyze mode). \n\nUpdated implementation requirements:\n- Problem-first conversational approach using Socratic questioning\n- Core methods: buildProblemUnderstanding(), exploreUserNeeds(), defineSuccessCriteria(), identifyConstraints(), generateProbingQuestions(), guideDiscoveryConversation()\n- Focus on stakeholder mapping, user needs exploration, and success criteria definition\n- Artifacts include living project documents with problem space definition, conversation history with insights, stakeholder mapping, and validation approaches\n- Conversational flow management to guide users through problem discovery rather than solution jumping\n\nThis represents a fundamental shift from technical analysis to human-centered problem exploration through dialogue.\n</info added on 2025-06-29T12:39:39.512Z>",
+            "details": "Implement Discovery mode extending the Mode base class. Include discovery-specific logic for problem exploration through conversational discovery methods. Implement mode-specific prompts, context handling, and output formatting. This serves as the reference implementation for other modes.\n<info added on 2025-06-29T12:39:39.512Z>\nDiscovery mode has been redefined based on PRD analysis. The mode is now focused on conversational problem exploration rather than codebase analysis (which is handled by the new Analyze mode). \n\nUpdated implementation requirements:\n- Problem-first conversational approach using Socratic questioning\n- Core methods: buildProblemUnderstanding(), exploreUserNeeds(), defineSuccessCriteria(), identifyConstraints(), generateProbingQuestions(), guideDiscoveryConversation()\n- Focus on stakeholder mapping, user needs exploration, and success criteria definition\n- Artifacts include living project documents with problem space definition, conversation history with insights, stakeholder mapping, and validation approaches\n- Conversational flow management to guide users through problem discovery rather than solution jumping\n\nThis represents a fundamental shift from technical analysis to human-centered problem exploration through dialogue.\n</info added on 2025-06-29T12:39:39.512Z>\n<info added on 2025-06-29T16:22:41.649Z>\nArchitecture document created at .conductor/design/discovery-mode-architecture.md with comprehensive design covering conversational flow system, modular components (ConversationManager, QuestionEngine, InsightAnalyzer, ArtifactGenerator), state machine for conversation phases, question template library, and artifact generation. Design maintains compatibility with AbstractMode base class while emphasizing natural conversation flow and emergent insight discovery. Agent integration deferred to Phase 2 with placeholder methods included.\n</info added on 2025-06-29T16:22:41.649Z>",
             "testStrategy": ""
           },
           {
@@ -286,7 +286,7 @@
     ],
     "metadata": {
       "created": "2025-06-29T15:24:43.165Z",
-      "updated": "2025-06-29T15:24:43.165Z",
+      "updated": "2025-06-29T16:18:13.187Z",
       "description": "Phase 1: Foundation + Discovery Mode - Minimal viable CLI with basic mode system (no agent integration)"
     }
   },
