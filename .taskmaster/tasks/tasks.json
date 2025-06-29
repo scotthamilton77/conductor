@@ -282,11 +282,27 @@
             "parentTaskId": 11
           }
         ]
+      },
+      {
+        "id": 12,
+        "title": "Implement cross-mode change management system",
+        "description": "Build a comprehensive change management system that tracks cascading updates across modes when users revise discoveries, with impact analysis, inter-mode notifications, and user-friendly change propagation workflows.",
+        "details": "Create ChangeManager class that tracks dependencies between artifacts across modes (Discovery -> Planning -> Build). Implement change impact analysis that identifies downstream artifacts affected by upstream changes. Build notification system using event-driven architecture to alert users when changes in one mode may affect work in other modes. Create ChangePropagationWorkflow that guides users through reviewing and updating affected downstream work. Implement change versioning to preserve history and allow rollback. Design user interface flows for reviewing proposed changes, accepting/rejecting updates, and batch processing multiple changes. Add conflict resolution mechanisms when multiple changes affect the same artifacts. Include change preview functionality showing before/after states. Integrate with file-based state management to persist change tracking metadata. Create change audit trail for debugging and accountability. Implement smart change detection that understands semantic relationships between different types of artifacts (discoveries affecting requirements, requirements affecting implementation plans).",
+        "testStrategy": "Test change detection across mode boundaries with sample artifacts, verify impact analysis correctly identifies affected downstream work, validate notification system triggers appropriate alerts, test change propagation workflows with various scenarios including conflicts, verify change versioning and rollback functionality, test batch change processing with multiple simultaneous updates, validate conflict resolution mechanisms, test change preview accuracy, verify persistence of change tracking metadata, and test audit trail completeness and accuracy.",
+        "status": "pending",
+        "dependencies": [
+          3,
+          4,
+          5,
+          11
+        ],
+        "priority": "medium",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-06-29T15:24:43.165Z",
-      "updated": "2025-06-29T16:18:13.187Z",
+      "updated": "2025-06-29T17:11:57.623Z",
       "description": "Phase 1: Foundation + Discovery Mode - Minimal viable CLI with basic mode system (no agent integration)"
     }
   },
