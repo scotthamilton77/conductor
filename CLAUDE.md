@@ -245,22 +245,9 @@ You should not need to read the tasks.json file directly - use taskmaster tools 
 
 **When working on TaskMaster-managed tasks, Claude Code MUST:**
 
-1. **Update Task Status When Starting Work**
+1. **Update Task Status When Starting Work** - Use `set_task_status` MCP tool
 
-   ```bash
-   # Mark task as in-progress when beginning
-   task-master set-status --id=4.2 --status=in-progress
-   ```
-
-2. **Update Subtask Status and Progress**
-
-   ```bash
-   # Log implementation progress to subtasks
-   task-master update-subtask --id=4.2 --prompt="Added AbstractMode base class with lifecycle hooks"
-   
-   # Mark subtasks complete when finished
-   task-master set-status --id=4.2 --status=done
-   ```
+2. **Update Subtask Status and Progress** - Use `update_subtask` and `set_task_status` MCP tools
 
 3. **Maintain Accurate Status Throughout Development**
    - Never leave tasks in incorrect status - this breaks project tracking
@@ -285,46 +272,24 @@ You should not need to read the tasks.json file directly - use taskmaster tools 
 
 **Example Workflow:**
 
-1. Start with `task-master show 4.2` to understand the requirements
-2. Use `TodoWrite` to plan your implementation approach within Claude Code
-3. Mark TaskMaster task as in-progress: `task-master set-status --id=4.2 --status=in-progress`
-4. Work through implementation using Claude Code todos for internal tracking
-5. Log progress to TaskMaster: `task-master update-subtask --id=4.2 --prompt="implementation notes"`
-6. Mark TaskMaster task complete: `task-master set-status --id=4.2 --status=done`
+1. Use `get_task` MCP tool to understand requirements
+2. Use `TodoWrite` for Claude Code session planning  
+3. Use `set_task_status` to mark task as in-progress
+4. Work through implementation using internal todos
+5. Use `update_subtask` to log progress and findings
+6. Use `set_task_status` to mark complete when done
 
-### TaskMaster Integration Commands
+### TaskMaster MCP Integration
 
-#### Essential Commands for Claude Code
+**TaskMaster is available via MCP tools** (all `mcp__taskmaster-ai__*` functions). Key workflow tools:
 
-```bash
-# Get next available task
-task-master next
+- `get_task` / `get_tasks` - View task details and lists
+- `next_task` - Find next available task
+- `set_task_status` - Update task/subtask status
+- `update_subtask` - Log implementation progress
+- `add_task` - Create new tasks during development
 
-# View specific task details
-task-master show <id>  # e.g., task-master show 4.2
-
-# Update task status
-task-master set-status --id=<id> --status=<status>
-
-# Log implementation progress
-task-master update-subtask --id=<id> --prompt="progress notes"
-
-# Add new tasks during development
-task-master add-task --prompt="new requirement discovered"
-```
-
-#### Viewing Project Status
-
-```bash
-# List all tasks in current tag
-task-master list
-
-# View tasks by status
-task-master get-tasks --status=pending
-
-# Switch between development phases
-task-master use-tag <tag-name>
-```
+Refer to MCP tool descriptions for complete parameter details and usage.
 
 ## Essential Development Practices
 
@@ -355,3 +320,35 @@ task-master use-tag <tag-name>
 - Include enough detail for future implementer to understand requirements
 - Reference specific task IDs when the work relates to planned tasks
 - Mark both technical debt and intentional gaps for future phases
+
+## Quality Assurance Checklist
+
+Before considering any development session complete, ensure:
+
+### ✅ Task Management
+
+- [ ] All parent tasks set to appropriate status ("in-progress" while working, "done" when complete)
+- [ ] All subtasks properly updated with implementation notes and status changes
+- [ ] No tasks left in incorrect status (this breaks project tracking)
+
+### ✅ Code Quality
+
+- [ ] All new code has comprehensive documentation (classes, methods, complex logic)
+- [ ] Design decisions and architectural choices explained in comments
+- [ ] Clear, descriptive naming conventions followed throughout
+
+### ✅ Future Work Planning
+
+- [ ] All placeholder implementations marked with TODO(#task-id) or FIXME
+- [ ] Sufficient detail provided for future implementers
+- [ ] References to specific task IDs where applicable
+- [ ] Technical debt explicitly documented
+
+### ✅ Testing & Validation
+
+- [ ] Appropriate test coverage for new functionality
+- [ ] Tests passing with proper cleanup
+- [ ] No linting, formatting, or type checking errors
+- [ ] Code follows existing project patterns and conventions
+
+**CRITICAL**: Missing any of these items compromises project quality and continuity. Always complete this checklist before finishing a development session.
