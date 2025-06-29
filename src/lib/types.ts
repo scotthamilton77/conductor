@@ -55,6 +55,7 @@ export interface Logger {
 export interface ModeConfig {
   version: string;
   enabled: boolean;
+  description?: string;
   dependencies?: string[];
   settings?: Record<string, unknown>;
 }
@@ -123,3 +124,8 @@ export interface Mode {
   getPrompts(): Record<string, string>;
   updatePrompt(key: string, template: string): void;
 }
+
+/**
+ * Re-export registry types for external use
+ */
+export type { ModeContext, ModeRegistryEntry, ValidationResult } from "./mode-registry.ts";

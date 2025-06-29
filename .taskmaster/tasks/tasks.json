@@ -185,8 +185,8 @@
             "dependencies": [
               2
             ],
-            "details": "Build a centralized mode registry that can discover, register, and instantiate modes dynamically. Implement factory patterns for mode creation with proper dependency injection. Include mode validation, versioning support, and error handling for invalid or missing modes.",
-            "status": "pending",
+            "details": "Build a centralized mode registry that can discover, register, and instantiate modes dynamically. Implement factory patterns for mode creation with proper dependency injection. Include mode validation, versioning support, and error handling for invalid or missing modes.\n<info added on 2025-06-29T14:14:50.099Z>\nSuccessfully implemented complete Mode Registry and Factory System. Core components include ModeRegistry class with full registration, discovery, instance management, dependency resolution, and configuration capabilities. ModeFactory provides dependency injection, validation pipeline, and context management. Key interfaces (ModeRegistryEntry, ModeContext, ValidationResult) fully implemented. Architecture perfectly aligns with design document, integrates with existing AbstractMode/FileOperations/Logger infrastructure. Comprehensive test suite with 10 tests covering all functionality, error handling, and edge cases - all passing. Updated type exports in mod.ts and types.ts for external integration. Future work properly stubbed with task references: discovery method for 4.4, dependency injection placeholders for 4.5, FileOperations integration deferred appropriately. Registry and factory system fully operational and ready for mode implementations.\n</info added on 2025-06-29T14:14:50.099Z>",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -291,11 +291,25 @@
         ],
         "priority": "medium",
         "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Design Conductor Directory Architecture and Task Management Integration",
+        "description": "Redesign ./conductor folder structure to be self-contained while enabling flexible integration with external task management systems through well-defined interfaces and sync mechanisms.",
+        "details": "Analyze current ./conductor directory structure and identify overlaps/conflicts with task management storage expectations. Design new directory architecture that maintains conductor's self-contained nature while providing clear integration points for external systems like taskmaster. Create directory structure specification with dedicated areas for: product requirements (./conductor/requirements/), design documents (./conductor/design/), project artifacts (./conductor/artifacts/), and integration interfaces (./conductor/sync/). Define file-based sync protocols that allow conductor to read from and write to external task management storage without tight coupling. Implement adapter pattern for different task management systems with pluggable interfaces. Design metadata standards for cross-system compatibility including file versioning, ownership tracking, and sync status. Create configuration system for specifying external task management integration preferences. Establish clear boundaries between conductor-owned files and shared/synced files. Document migration path for existing conductor projects to new structure.",
+        "testStrategy": "Verify new directory structure supports all existing conductor functionality without breaking changes. Test file sync mechanisms with taskmaster integration scenarios including bidirectional sync, conflict resolution, and partial sync capabilities. Validate that conductor remains functional when external task management is unavailable or disabled. Test adapter pattern with multiple mock task management systems to ensure flexibility. Verify metadata tracking accuracy across sync operations. Test migration scripts with existing conductor projects to ensure seamless transition. Validate that new structure maintains proper file permissions and access controls.",
+        "status": "pending",
+        "dependencies": [
+          3,
+          4
+        ],
+        "priority": "medium",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-06-28T17:46:38.125Z",
-      "updated": "2025-06-29T14:07:32.125Z",
+      "updated": "2025-06-29T14:20:24.998Z",
       "description": "Phase 1: Foundation + Discovery Mode - CLI-first implementation with Deno, file-based state management, and Discovery mode"
     }
   }
