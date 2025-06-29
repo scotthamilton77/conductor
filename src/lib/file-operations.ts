@@ -7,7 +7,7 @@
 
 import { ensureDir, exists } from "@std/fs";
 import { dirname, join } from "@std/path";
-import { type ConductorMode, FileSystemManager } from "./file-system.ts";
+import { FileSystemManager } from "./file-system.ts";
 import { type Logger } from "./types.ts";
 
 export interface FileOperationOptions {
@@ -47,8 +47,9 @@ export class FileOperations {
   private readonly logger?: Logger;
   private readonly defaultOptions: Required<FileOperationOptions>;
 
-  constructor(basePath?: string, logger?: Logger) {
-    this.fsManager = new FileSystemManager(basePath);
+  constructor(_basePath?: string, logger?: Logger) {
+    // Always use project root as base path, FileSystemManager handles .conductor internally
+    this.fsManager = new FileSystemManager();
     this.logger = logger;
     this.defaultOptions = {
       encoding: "utf-8",

@@ -15,4 +15,5 @@ export * from "./types.ts";
 
 // Mode system exports
 export { AbstractMode } from "../modes/abstract-mode.ts";
+export { DiscoveryMode } from "../modes/discovery-mode.ts";
 export { ModeFactory, ModeRegistry } from "./mode-registry.ts";
