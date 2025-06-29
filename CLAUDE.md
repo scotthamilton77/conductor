@@ -76,6 +76,30 @@ project/
 └── CLAUDE.md            # This file - auto-loaded by Claude Code
 ```
 
+## Architecture Documents
+
+### Mode System Architecture
+- **Location**: `.conductor/design/mode-system-architecture.md`
+- **Purpose**: Comprehensive design for the mode-based framework
+- **Key Components**: AbstractMode base class, ModeRegistry, CLI integration, state management, prompt management
+- **Reference Implementations**: 
+  - **Discovery mode**: Problem exploration through conversational discovery (not codebase analysis)
+  - **Analyze mode**: Technical codebase analysis and architecture exploration
+
+**When working on mode system tasks (4.x), always reference this architecture document for:**
+- Interface definitions and class hierarchies
+- Integration patterns with existing systems (FileOperations, Config, Logger)
+- Mode-specific behavior patterns and AI interaction flows
+- Implementation guidelines and best practices
+- Distinction between Discovery (problem-focused) and Analyze (code-focused) modes
+
+**Key Design Principles:**
+- Extends existing `Mode` interface in `types.ts` for backward compatibility
+- Uses FileOperations API for all persistence needs
+- Integrates with existing CLI framework (Cliffy) without breaking changes
+- Supports dynamic mode registration and factory patterns
+- Provides context preservation and state management across sessions
+
 ## MCP Integration
 
 Task Master provides an MCP server that Claude Code can connect to. Configure in `.mcp.json`:
