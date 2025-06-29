@@ -56,6 +56,7 @@ task-master generate                                         # Update task markd
 
 - `.taskmaster/docs/PRD.md` - Main product requirements
 - `.conductor/design/*` - Topic-specific architecture
+- `.conductor/ideas/*` - Exploratory ideas and planning notes
 
 ## Architecture Documents
 

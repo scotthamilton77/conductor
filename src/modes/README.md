@@ -94,8 +94,10 @@ Optional lifecycle hooks allow modes to observe and react to execution events wi
 ├── state/           # Persistent state storage
 │   └── {mode-id}/
 ├── config/          # Global configuration
-└── artifacts/       # Mode-generated outputs
-    └── {mode-id}/
+├── artifacts/       # Mode-generated outputs
+│   └── {mode-id}/
+├── design/          # Architecture and design documents
+└── ideas/           # Exploratory ideas and planning notes
 ```
 
 ## Key Decisions and Rationales

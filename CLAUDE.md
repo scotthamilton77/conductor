@@ -68,7 +68,9 @@ deno test --allow-read --allow-write --allow-env tests/ --filter "test-name"
 ├── modes/           # Mode-specific configuration and prompts
 ├── state/           # Persistent runtime state
 ├── config/          # Global configuration
-└── artifacts/       # Mode-generated outputs
+├── artifacts/       # Mode-generated outputs
+├── design/          # Architecture and design documents
+└── ideas/           # Exploratory ideas and planning notes
 ```
 
 ### Design Patterns
