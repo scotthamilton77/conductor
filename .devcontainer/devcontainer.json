@@ -54,7 +54,7 @@
   "mounts": [
     "source=conductor-bashhistory,target=/commandhistory,type=volume",
     "source=${localEnv:HOME}/.gitconfig,target=/home/conductor/.gitconfig,type=bind,consistency=cached",
-    "source=${localEnv:HOME}/.claude/CLAUDE.md,target=/home/conductor/.claude/CLAUDE.md,type=bind,consistency=cached"
+    "source=${localWorkspaceFolder}/.devcontainer/home/.claude,target=/home/conductor/.claude,type=bind,consistency=cached"
   ],
   "remoteEnv": {
     "CLAUDE_CONFIG_DIR": "/home/conductor/.claude",

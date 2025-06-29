@@ -64,3 +64,10 @@ coverage/
 # Claude Code local settings
 .claude/settings.local.json
 .claude/config.local.json
+
+# DevContainer Claude Files
+.devcontainer/home/.claude/ide/
+.devcontainer/home/.claude/projects/
+.devcontainer/home/.claude/statsig/
+.devcontainer/home/.claude/todos/
+.credentials.json
