@@ -36,7 +36,90 @@ export interface Mode {
 
 ## Core Architecture Components
 
-### 1. Mode Base Class Hierarchy
+### 1. Cross-Cutting Agent Architecture
+
+```typescript
+// Cross-cutting agents that work across all modes
+export interface CrossCuttingAgent {
+  name: string;
+  description: string;
+  supportedModes: string[];
+  
+  // Agent lifecycle
+  initialize(context: ModeContext): Promise<void>;
+  cleanup(): Promise<void>;
+  
+  // Core agent capabilities
+  evaluateProposal(proposal: any, context: ModeContext): Promise<AgentFeedback>;
+  contributeRequirements(context: ModeContext): Promise<RequirementContribution>;
+  validateOutput(output: ModeResult, context: ModeContext): Promise<ValidationResult>;
+  
+  // Agent-specific analysis
+  analyzeContext(context: ModeContext): Promise<ContextAnalysis>;
+  generateRecommendations(analysis: ContextAnalysis): Promise<AgentRecommendation[]>;
+}
+
+export interface AgentFeedback {
+  agentName: string;
+  severity: 'info' | 'warning' | 'error';
+  category: string;
+  message: string;
+  suggestions: string[];
+  blocksExecution: boolean;
+  metadata: Record<string, unknown>;
+}
+
+export interface RequirementContribution {
+  agentName: string;
+  requirements: Requirement[];
+  constraints: Constraint[];
+  recommendations: string[];
+}
+
+export interface AgentRecommendation {
+  id: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  category: string;
+  title: string;
+  description: string;
+  actionItems: string[];
+  rationale: string;
+}
+
+// Specific agent implementations
+export class ComplexityWatchdogAgent implements CrossCuttingAgent {
+  name = "complexity-watchdog";
+  description = "Engineering simplicity and preventing over-engineering";
+  supportedModes = ["discovery", "planning", "design", "build", "analyze"];
+  
+  async evaluateComplexity(solution: any): Promise<ComplexityAnalysis>;
+  async detectReinvention(proposal: any): Promise<ReinventionWarning[]>;
+  async suggestSimplification(analysis: ComplexityAnalysis): Promise<SimplificationOptions>;
+  async validateComplexityJustification(complexity: number, justification: string): Promise<boolean>;
+}
+
+export class SecurityAgent implements CrossCuttingAgent {
+  name = "security";
+  description = "Proactive security integration and threat analysis";
+  supportedModes = ["discovery", "planning", "design", "build", "test", "analyze"];
+  
+  async performThreatModeling(architecture: any): Promise<ThreatModel>;
+  async analyzeSecurityPatterns(code: any): Promise<SecurityAnalysis>;
+  async contributeSecurityRequirements(context: ModeContext): Promise<SecurityRequirement[]>;
+  async validateSecurityCompliance(output: any): Promise<SecurityValidationResult>;
+}
+
+export interface AgentRegistry {
+  agents: Map<string, CrossCuttingAgent>;
+  
+  register(agent: CrossCuttingAgent): void;
+  getAgent(name: string): CrossCuttingAgent | null;
+  getAgentsForMode(modeName: string): CrossCuttingAgent[];
+  evaluateWithAllAgents(proposal: any, context: ModeContext): Promise<AgentFeedback[]>;
+}
+```
+
+### 2. Mode Base Class Hierarchy
 
 ```typescript
 // Enhanced base interface building on existing Mode interface
@@ -73,6 +156,8 @@ export abstract class AbstractMode implements Mode {
   protected logger: Logger;
   protected fileOps: FileOperations;
   protected promptManager: PromptManager;
+  protected agentRegistry: AgentRegistry;
+  protected crossCuttingAgents: CrossCuttingAgent[] = [];
   
   // Lifecycle methods (existing interface)
   abstract initialize(): Promise<void>;
@@ -85,6 +170,54 @@ export abstract class AbstractMode implements Mode {
   abstract handleCommand(command: string, args: string[]): Promise<ModeResult>;
   abstract saveState(): Promise<void>;
   abstract loadState(): Promise<void>;
+  
+  // Agent integration methods
+  async evaluateWithAgents(proposal: any): Promise<AgentFeedback[]> {
+    const feedback: AgentFeedback[] = [];
+    for (const agent of this.crossCuttingAgents) {
+      const agentFeedback = await agent.evaluateProposal(proposal, this.context);
+      feedback.push(agentFeedback);
+    }
+    return feedback;
+  }
+  
+  async incorporateAgentFeedback(feedback: AgentFeedback[]): Promise<void> {
+    // Process and incorporate agent feedback into mode operations
+    const blockers = feedback.filter(f => f.blocksExecution);
+    if (blockers.length > 0) {
+      throw new Error(`Execution blocked by agents: ${blockers.map(b => b.message).join(', ')}`);
+    }
+    
+    // Log warnings and suggestions
+    const warnings = feedback.filter(f => f.severity === 'warning');
+    for (const warning of warnings) {
+      this.logger.warn(`${warning.agentName}: ${warning.message}`, warning.metadata);
+    }
+  }
+  
+  async validateWithAgents(result: ModeResult): Promise<ValidationResult> {
+    const validations: ValidationResult[] = [];
+    for (const agent of this.crossCuttingAgents) {
+      const validation = await agent.validateOutput(result, this.context);
+      validations.push(validation);
+    }
+    
+    return {
+      isValid: validations.every(v => v.isValid),
+      errors: validations.flatMap(v => v.errors || []),
+      warnings: validations.flatMap(v => v.warnings || []),
+      suggestions: validations.flatMap(v => v.suggestions || [])
+    };
+  }
+  
+  async getAgentRequirements(): Promise<RequirementContribution[]> {
+    const contributions: RequirementContribution[] = [];
+    for (const agent of this.crossCuttingAgents) {
+      const contribution = await agent.contributeRequirements(this.context);
+      contributions.push(contribution);
+    }
+    return contributions;
+  }
 }
 ```
 
@@ -217,6 +350,13 @@ export interface PromptTemplate {
   metadata: PromptMetadata;
 }
 
+export interface AgentPromptTemplate extends PromptTemplate {
+  agentType: 'complexity' | 'security' | 'custom';
+  evaluationCriteria: string[];
+  integrationPoints: string[];
+  supportedModes: string[];
+}
+
 export interface PromptMetadata {
   version: string;
   author: string;
@@ -227,20 +367,31 @@ export interface PromptMetadata {
 
 export class PromptManager {
   private templates: Map<string, PromptTemplate> = new Map();
+  private agentTemplates: Map<string, AgentPromptTemplate> = new Map();
   private fileOps: FileOperations;
   
   // Template management
   async loadTemplates(modeName: string): Promise<void>;
+  async loadAgentTemplates(agentName: string): Promise<void>;
   registerTemplate(template: PromptTemplate): void;
+  registerAgentTemplate(template: AgentPromptTemplate): void;
   getTemplate(id: string): PromptTemplate | null;
+  getAgentTemplate(id: string): AgentPromptTemplate | null;
   
   // Prompt generation
   async generatePrompt(templateId: string, variables: Record<string, unknown>): Promise<string>;
   async generateSystemPrompt(modeName: string, context: ModeContext): Promise<string>;
   async generateUserPrompt(input: string, context: ModeContext): Promise<string>;
+  async generateAgentPrompt(agentName: string, templateId: string, context: ModeContext): Promise<string>;
+  
+  // Agent-specific prompt generation
+  async generateComplexityEvaluationPrompt(proposal: any, context: ModeContext): Promise<string>;
+  async generateSecurityAnalysisPrompt(architecture: any, context: ModeContext): Promise<string>;
+  async generateAgentFeedbackPrompt(feedback: AgentFeedback[], context: ModeContext): Promise<string>;
   
   // Context injection
   injectContext(template: string, context: ModeContext): string;
+  injectAgentContext(template: AgentPromptTemplate, context: ModeContext, agentData: any): string;
   validateVariables(template: PromptTemplate, variables: Record<string, unknown>): ValidationResult;
 }
 ```
@@ -262,7 +413,11 @@ User Input → CLI Parser → ModeCommandRouter.routeCommand()
                                ↓
 CurrentMode.validateInput() → CurrentMode.handleCommand()
                                ↓
-PromptManager.generatePrompt() → AI Interaction → ModeResult
+AgentRegistry.evaluateWithAllAgents() → Agent Feedback Collection
+                               ↓
+CurrentMode.incorporateAgentFeedback() → PromptManager.generatePrompt()
+                               ↓
+AI Interaction → ModeResult → CurrentMode.validateWithAgents()
                                ↓
 StateManager.saveState() → FileOperations.writeFile() → Response
 ```
@@ -294,8 +449,19 @@ export class DiscoveryMode extends AbstractMode {
   async identifyConstraints(): Promise<ConstraintAnalysis>;
   async generateProbingQuestions(): Promise<string[]>;
   
+  // Agent integration in discovery
+  async incorporateSecurityConsiderations(): Promise<SecurityConsideration[]>;
+  async validateProblemComplexity(problem: ProblemInsights): Promise<ComplexityAssessment>;
+  async getAgentPerspectives(problemSpace: string): Promise<AgentPerspective[]>;
+  
   // Command handlers for problem discovery
-  async handleExplore(problemSpace: string): Promise<ModeResult>;
+  async handleExplore(problemSpace: string): Promise<ModeResult> {
+    const agentFeedback = await this.evaluateWithAgents({ problemSpace });
+    const insights = await this.buildProblemUnderstanding(problemSpace);
+    await this.incorporateAgentFeedback(agentFeedback);
+    return this.createModeResult(insights, agentFeedback);
+  }
+  
   async handleWhoFor(stakeholder: string): Promise<ModeResult>;
   async handleSuccess(criteria: string): Promise<ModeResult>;
   async handleConstraint(limitation: string): Promise<ModeResult>;
@@ -312,12 +478,15 @@ export class DiscoveryMode extends AbstractMode {
 - **Concrete grounding**: Converts abstract ideas into specific, measurable examples
 - **Patient exploration**: Doesn't rush to solutions or implementation details
 - **Vision building**: Helps define what success looks like before exploring how to achieve it
+- **Agent-informed exploration**: Security Agent identifies security-related problem dimensions
+- **Complexity awareness**: Complexity Watchdog prevents over-complex problem framings
 
 **Discovery Artifacts**:
 - Living project document (`.conductor/project.md`) with problem space, success criteria, and constraints
-- Conversation history with key insights and assumptions identified
-- Stakeholder and user need mapping
-- Success metrics and validation approaches
+- Agent perspectives on security considerations and complexity implications
+- Conversation history with key insights, assumptions, and agent feedback
+- Stakeholder and user need mapping with security and complexity considerations
+- Success metrics and validation approaches including agent-contributed criteria
 
 ### Analyze Mode Implementation Plan
 
@@ -336,8 +505,22 @@ export class AnalyzeMode extends AbstractMode {
   async mapDependencies(): Promise<DependencyGraph>;
   async evaluatePerformance(): Promise<PerformanceAnalysis>;
   
+  // Agent-integrated analysis capabilities
+  async performSecurityAudit(): Promise<SecurityAuditResult>;
+  async analyzeComplexityPatterns(): Promise<ComplexityPatternAnalysis>;
+  async getAgentRecommendations(): Promise<AgentRecommendation[]>;
+  
   // Command handlers for technical analysis
-  async handleAnalyze(target: string): Promise<ModeResult>;
+  async handleAnalyze(target: string): Promise<ModeResult> {
+    const analysis = await this.analyzeCodebase(target);
+    const agentFeedback = await this.evaluateWithAgents({ target, analysis });
+    const securityAudit = await this.performSecurityAudit();
+    const complexityAnalysis = await this.analyzeComplexityPatterns();
+    
+    await this.incorporateAgentFeedback(agentFeedback);
+    return this.createModeResult({ analysis, securityAudit, complexityAnalysis }, agentFeedback);
+  }
+  
   async handleExplore(component: string): Promise<ModeResult>;
   async handleMap(relationship: string): Promise<ModeResult>;
   async handleAssess(aspect: string): Promise<ModeResult>;
@@ -354,12 +537,16 @@ export class AnalyzeMode extends AbstractMode {
 - **Pattern recognition**: Identifies architectural patterns, anti-patterns, and opportunities
 - **Improvement suggestions**: Provides actionable recommendations for technical enhancements
 - **Dependency mapping**: Understands relationships and interconnections
+- **Security-aware analysis**: Security Agent performs comprehensive security audits
+- **Complexity assessment**: Complexity Watchdog identifies over-engineering patterns and simplification opportunities
 
 **Analyze Artifacts**:
 - Codebase analysis reports with findings and recommendations
-- Architecture diagrams and documentation
-- Technical debt assessment and remediation roadmap
-- Performance analysis and optimization opportunities
+- Security audit results with threat analysis and vulnerability assessments
+- Complexity analysis with simplification recommendations
+- Architecture diagrams and documentation with security and complexity annotations
+- Technical debt assessment and remediation roadmap prioritized by security and complexity impact
+- Performance analysis and optimization opportunities with security and complexity trade-offs
 
 ## Integration Points
 
@@ -433,17 +620,22 @@ export class AnalyzeMode extends AbstractMode {
 - Mode registry and factory
 - Basic Discovery mode implementation
 - CLI integration foundation
+- Cross-cutting agent framework foundation
+- Basic Complexity Watchdog agent
 
 ### Phase 2 (Future)
 - Advanced state management
-- Prompt template system
-- Multi-mode workflows
+- Prompt template system including agent templates
+- Multi-mode workflows with agent integration
+- Security Agent implementation with threat modeling
 - Performance optimizations
 
 ### Phase 3 (Future)
-- Plugin system for external modes
-- Advanced AI interaction patterns
-- Collaborative mode features
-- UI integration points
+- Plugin system for external modes and custom agents
+- Advanced AI interaction patterns with agent collaboration
+- Collaborative mode features with shared agent insights
+- UI integration points with agent feedback visualization
+- Machine learning-based agent improvement
+- Cross-agent coordination and conflict resolution
 
 This architecture provides a solid foundation for implementing the mode system while maintaining compatibility with the existing codebase and supporting future extensibility.

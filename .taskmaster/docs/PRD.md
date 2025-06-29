@@ -113,6 +113,32 @@ Current AI-assisted development suffers from systemic issues:
 - Synthesize project knowledge across sessions
 - Ensure documentation consistency and accuracy
 
+#### Complexity Watchdog Agent (Simplicity Guardian)
+**Purpose**: Engineering simplicity and preventing over-engineering
+**Capabilities**:
+- Detect unnecessary complexity in proposed solutions
+- Identify wheel-reinvention vs. leveraging existing solutions
+- Evaluate implementation approaches for simplicity vs. functionality trade-offs
+- Monitor technical debt accumulation and complexity growth
+- Suggest simplification refactoring opportunities
+- Validate that solution complexity matches problem complexity
+- Challenge implementations that smell of too many responsibilities
+- Challenge architectural decisions that add unnecessary layers
+- Recommend proven, existing solutions over custom implementations
+
+#### Security Agent (Security Consultant)
+**Purpose**: Proactive security integration and threat analysis
+**Capabilities**:
+- Expert research to identify latest security practices for the context (e.g. OWASP, simonwillison.net)
+- Contribute security requirements during planning phases
+- Perform threat modeling for architectural decisions
+- Analyze code and architecture for security patterns and anti-patterns
+- Suggest security controls and defensive measures
+- Validate secure coding practices and standards compliance
+- Assess third-party dependencies for security risks
+- Identify potential attack vectors and vulnerabilities
+- Guide security-by-design implementation approaches
+
 ### Workflow Patterns
 
 #### Quick Win Pattern
@@ -120,33 +146,39 @@ Current AI-assisted development suffers from systemic issues:
 **Flow**:
 1. Conductor analyzes project state for small, valuable improvements
 2. Presents 3 ranked options with effort estimates
-3. Human selects preferred option
-4. Appropriate agent implements solution
-5. Reviewer generates focused review guide
-6. Human validates key decisions
-7. System executes tests and finalizes changes
+3. Complexity Watchdog evaluates options for simplicity and existing solution reuse
+4. Security Agent flags any security considerations for quick wins
+5. Human selects preferred option with agent feedback
+6. Appropriate agent implements solution
+7. Reviewer generates focused review guide with complexity and security checks
+8. Human validates key decisions
+9. System executes tests and finalizes changes
 
 #### Feature Development Pattern
 **Trigger**: New functionality request
 **Flow**:
 1. Architect presents multiple implementation approaches with trade-offs
-2. Human selects approach and constraints
-3. Conductor decomposes into prioritized tasks
-4. Iterative implementation with review checkpoints
-5. Tester generates validation strategy
-6. Documenter updates relevant documentation
-7. Progress tracking with dependency management
+2. Security Agent contributes security requirements to implementation approaches
+3. Complexity Watchdog validates architectural simplicity and existing solution reuse
+4. Human selects approach, constraints, and security/complexity trade-offs
+5. Conductor decomposes into prioritized tasks with security and complexity considerations
+6. Iterative implementation with review checkpoints including agent validation
+7. Tester generates validation strategy with security test scenarios
+8. Documenter updates relevant documentation including security and complexity decisions
+9. Progress tracking with dependency management and agent feedback loops
 
 #### Problem Resolution Pattern
 **Trigger**: Bug report or system issue
 **Flow**:
 1. Conductor gathers context and reproduces issue
 2. Reviewer analyzes potential root causes
-3. Human confirms symptoms and priority
-4. Coder generates multiple solution approaches
-5. Tester validates fix effectiveness
-6. Human selects optimal solution
-7. Implementation with monitoring for regression
+3. Security Agent analyzes if issue has security implications or attack vectors
+4. Complexity Watchdog ensures fix doesn't add unnecessary complexity or reinvent solutions
+5. Human confirms symptoms, priority, and agent considerations
+6. Coder generates multiple solution approaches with security and simplicity constraints
+7. Tester validates fix effectiveness including security regression testing
+8. Human selects optimal solution balancing functionality, security, and simplicity
+9. Implementation with monitoring for regression and complexity drift
 
 #### Learning Mode Pattern
 **Trigger**: Developer opts into educational interaction
@@ -409,20 +441,38 @@ confidence: high|medium|low
 #### Automated Gates
 - **Syntax and Style**: Linting, formatting, type checking
 - **Basic Functionality**: Unit test execution, build verification
-- **Security Baseline**: Static analysis, dependency scanning
+- **Security Baseline**: Static analysis, dependency scanning, vulnerability assessment
 - **Performance Baseline**: Basic performance regression detection
+- **Complexity Baseline**: Code complexity metrics, architecture complexity validation
+
+#### Agent-Driven Gates
+- **Complexity Gates**: 
+  - Solution complexity proportional to problem complexity
+  - No reinvention of existing, proven solutions
+  - Code complexity metrics within acceptable thresholds
+  - Architecture decision justification for complexity trade-offs
+- **Security Gates**:
+  - Threat model coverage for new features
+  - Security requirement validation and compliance
+  - Secure coding standard adherence
+  - Dependency security assessment and risk evaluation
+  - Attack vector analysis and mitigation validation
 
 #### Human Review Gates
-- **Architectural Decisions**: Design pattern choices, technology selection
+- **Architectural Decisions**: Design pattern choices, technology selection with agent input
 - **Business Logic**: Feature appropriateness, user experience impact
-- **Risk Assessment**: Security implications, operational concerns
+- **Risk Assessment**: Security implications, operational concerns, complexity risks
 - **Quality Judgment**: Code clarity, maintainability, team conventions
+- **Agent Feedback Resolution**: Review and decision on agent recommendations and warnings
 
 #### Escalation Triggers
 - **Confidence Threshold**: AI uncertainty exceeds 30%
 - **Complexity Threshold**: Implementation affects >5 files or introduces >10 decision points
 - **Impact Threshold**: Changes affect core business logic or user-facing behavior
 - **Time Threshold**: Task duration exceeds 2x initial estimate
+- **Agent Warning Threshold**: Multiple agent warnings or any agent error-level feedback
+- **Security Risk Threshold**: Security Agent identifies high or critical risk issues
+- **Complexity Risk Threshold**: Complexity Watchdog flags unnecessary complexity or reinvention
 
 ## User Experience & Interface Design
 

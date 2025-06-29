@@ -149,14 +149,14 @@
       {
         "id": 4,
         "title": "Develop Mode-Based Framework Foundation",
-        "description": "Create the core mode system foundation with basic Mode class architecture focused on Discovery mode for Phase 1 implementation",
+        "description": "Create the core mode system foundation with basic Mode class architecture and cross-cutting agent integration for enhanced mode operations in Phase 1 implementation",
         "status": "in-progress",
         "dependencies": [
           3
         ],
         "priority": "high",
-        "details": "Design basic Mode base class with simple state management for Discovery mode implementation, implement mode registry pattern for mode instantiation focusing on single mode initially, create mode-specific command parsing and routing for CLI interface, implement basic context preservation mechanisms for Discovery mode operations, design mode-specific prompt management for single AI agent architecture, build foundation for mode switching without UI components, implement basic memory management for Discovery mode artifacts, and establish CLI-based mode indication and feedback systems.",
-        "testStrategy": "Test Mode class instantiation for Discovery mode, verify basic state management functionality, validate CLI-based command routing, test context preservation within Discovery mode, verify mode-specific prompt handling, and test basic memory management for artifacts",
+        "details": "Design basic Mode base class with simple state management enhanced with cross-cutting agent integration capabilities, implement mode registry pattern for mode instantiation with agent coordination, create mode-specific command parsing and routing with agent evaluation workflow, implement basic context preservation mechanisms for Discovery mode operations with agent feedback, design mode-specific prompt management with agent-specific templates for enhanced AI interactions, build foundation for mode switching with agent validation without UI components, implement basic memory management for Discovery mode artifacts with agent oversight, establish CLI-based mode indication and feedback systems with agent integration, and create cross-cutting agent architecture for Complexity Watchdog and Security Agent support across all modes.",
+        "testStrategy": "Test Mode class instantiation for Discovery mode with agent integration, verify basic state management functionality with agent feedback, validate CLI-based command routing with agent evaluation workflow, test context preservation within Discovery mode with agent coordination, verify mode-specific prompt handling with agent templates, test basic memory management for artifacts with agent oversight, and validate cross-cutting agent registration and execution patterns",
         "subtasks": [
           {
             "id": 1,
@@ -193,44 +193,116 @@
             "id": 4,
             "title": "Implement Discovery Mode",
             "description": "Create the Discovery mode as the first concrete implementation of the mode system",
-            "dependencies": [
-              2
-            ],
-            "details": "Implement Discovery mode extending the Mode base class. Include discovery-specific logic for analyzing codebases, generating insights, and providing recommendations. Implement mode-specific prompts, context handling, and output formatting. This serves as the reference implementation for other modes.\n<info added on 2025-06-29T12:39:39.512Z>\nDiscovery mode has been redefined based on PRD analysis. The mode is now focused on conversational problem exploration rather than codebase analysis (which is handled by the new Analyze mode). \n\nUpdated implementation requirements:\n- Problem-first conversational approach using Socratic questioning\n- Core methods: buildProblemUnderstanding(), exploreUserNeeds(), defineSuccessCriteria(), identifyConstraints(), generateProbingQuestions(), guideDiscoveryConversation()\n- Focus on stakeholder mapping, user needs exploration, and success criteria definition\n- Artifacts include living project documents with problem space definition, conversation history with insights, stakeholder mapping, and validation approaches\n- Conversational flow management to guide users through problem discovery rather than solution jumping\n\nThis represents a fundamental shift from technical analysis to human-centered problem exploration through dialogue.\n</info added on 2025-06-29T12:39:39.512Z>",
             "status": "pending",
+            "dependencies": [
+              2,
+              "4.8",
+              "4.13"
+            ],
+            "details": "Implement Discovery mode extending the Mode base class. Include discovery-specific logic for analyzing codebases, generating insights, and providing recommendations. Implement mode-specific prompts, context handling, and output formatting. This serves as the reference implementation for other modes.\n<info added on 2025-06-29T12:39:39.512Z>\nDiscovery mode has been redefined based on PRD analysis. The mode is now focused on conversational problem exploration rather than codebase analysis (which is handled by the new Analyze mode). \n\nUpdated implementation requirements:\n- Problem-first conversational approach using Socratic questioning\n- Core methods: buildProblemUnderstanding(), exploreUserNeeds(), defineSuccessCriteria(), identifyConstraints(), generateProbingQuestions(), guideDiscoveryConversation()\n- Focus on stakeholder mapping, user needs exploration, and success criteria definition\n- Artifacts include living project documents with problem space definition, conversation history with insights, stakeholder mapping, and validation approaches\n- Conversational flow management to guide users through problem discovery rather than solution jumping\n\nThis represents a fundamental shift from technical analysis to human-centered problem exploration through dialogue.\n</info added on 2025-06-29T12:39:39.512Z>\n<info added on 2025-06-29T14:55:31.675Z>\nAgent integration has been added to Discovery mode requirements. The mode now incorporates cross-cutting feedback from Complexity Watchdog and Security Agent while maintaining its human-centered problem exploration focus.\n\nNew agent integration methods required:\n- incorporateSecurityConsiderations(): Integrates security perspective into problem understanding\n- validateProblemComplexity(): Gets complexity assessment from Complexity Watchdog\n- getAgentPerspectives(): Collects input from both agents for holistic view\n\nUpdated discovery workflow:\n- handleExplore() method must call evaluateWithAgents() before buildProblemUnderstanding()\n- Agent evaluations inform the discovery conversation without dominating it\n- Security considerations and complexity implications are woven into Socratic questioning\n- Agent perspectives are captured in discovery artifacts and conversation history\n\nThe implementation maintains conversational problem exploration as the primary focus while leveraging agent expertise to provide deeper insights on security risks and complexity implications that may not be immediately apparent to users during problem definition.\n</info added on 2025-06-29T14:55:31.675Z>",
             "testStrategy": ""
           },
           {
             "id": 5,
             "title": "Build CLI Command Routing System",
             "description": "Implement CLI command routing and integration for mode operations",
+            "status": "pending",
             "dependencies": [
               3,
               4
             ],
             "details": "Create CLI command structure for mode operations including mode selection, parameter passing, and execution flow. Implement command parsing, validation, and routing to appropriate mode handlers. Include help system, error reporting, and command completion support.",
-            "status": "pending",
             "testStrategy": ""
           },
           {
             "id": 6,
             "title": "Implement Context Preservation and State Management",
             "description": "Build state preservation mechanisms for maintaining context across mode operations",
+            "status": "pending",
             "dependencies": [
               2
             ],
             "details": "Implement context preservation system that can save and restore mode state, user preferences, and session data. Include serialization/deserialization of mode contexts, state validation, and cleanup mechanisms. Support both persistent and session-based state management.",
-            "status": "pending",
             "testStrategy": ""
           },
           {
             "id": 7,
             "title": "Create Mode-Specific Prompt Management System",
             "description": "Implement prompt templates and management for mode-specific AI interactions",
-            "details": "Build a prompt management system that allows each mode to define its own AI interaction patterns. Include template system for dynamic prompt generation, context injection mechanisms, response parsing strategies, and prompt versioning. Support both system prompts and user prompt templates specific to each mode's requirements.",
             "status": "pending",
             "dependencies": [
               2
+            ],
+            "details": "Build a prompt management system that allows each mode to define its own AI interaction patterns. Include template system for dynamic prompt generation, context injection mechanisms, response parsing strategies, and prompt versioning. Support both system prompts and user prompt templates specific to each mode's requirements.\n<info added on 2025-06-29T14:56:02.843Z>\nThe prompt management system requires agent-specific capabilities to support mode-agent coordination. Extend the system with AgentPromptTemplate interface that builds on base PromptTemplate with agent-specific properties and methods. Implement specialized prompt generation methods: generateComplexityEvaluationPrompt() for task complexity assessment, generateSecurityAnalysisPrompt() for security evaluations, and generateAgentFeedbackPrompt() for agent response processing. Add agent template management functions including loadAgentTemplates() for bulk loading, registerAgentTemplate() for individual registration, and getAgentTemplate() for retrieval. Create injectAgentContext() method to seamlessly inject evaluation context into agent prompts. The prompt system serves as the coordination layer between mode operations and agent evaluations, ensuring consistent agent interaction patterns across all mode types and maintaining prompt coherence throughout the agent workflow pipeline.\n</info added on 2025-06-29T14:56:02.843Z>",
+            "testStrategy": ""
+          },
+          {
+            "id": 8,
+            "title": "Enhance AbstractMode with Agent Integration Methods",
+            "description": "Add cross-cutting agent integration capabilities to the AbstractMode base class",
+            "status": "pending",
+            "dependencies": [
+              2,
+              "4.12"
+            ],
+            "details": "Extend the existing AbstractMode base class with agent integration methods: evaluateWithAgents() for pre-AI proposal evaluation, incorporateAgentFeedback() for integrating agent recommendations, validateWithAgents() for post-AI result validation, and getAgentRequirements() for declaring agent dependencies. Maintain backward compatibility while adding new agent coordination capabilities.\n<info added on 2025-06-29T14:55:42.598Z>\nImplementation requirements fully documented and validated against CHANGELOG architecture specifications. Subtask scope includes extending AbstractMode with four key agent integration methods while maintaining backward compatibility. Ready to proceed with implementation as part of the broader agent integration initiative. All architectural requirements have been properly captured and align with the mode system enhancement goals.\n</info added on 2025-06-29T14:55:42.598Z>\n<info added on 2025-06-29T14:58:57.637Z>\nDependencies updated to include subtask 4.12 (Agent Framework Foundation) alongside existing dependency 4.2 (AbstractMode Base Class Implementation). This subtask requires both the core mode infrastructure and the foundational agent framework to properly integrate agent coordination capabilities into the AbstractMode class hierarchy.\n</info added on 2025-06-29T14:58:57.637Z>",
+            "testStrategy": "Test agent integration methods on AbstractMode, verify agent evaluation workflow, validate agent feedback incorporation, test agent requirement declaration, and ensure backward compatibility with existing mode implementations"
+          },
+          {
+            "id": 9,
+            "title": "Implement AgentRegistry for Cross-Cutting Agents",
+            "description": "Create registry system for managing cross-cutting agents like Complexity Watchdog and Security Agent",
+            "status": "pending",
+            "dependencies": [
+              3,
+              "4.12"
+            ],
+            "details": "Build an AgentRegistry system for registering, discovering, and managing cross-cutting agents that work across all modes. Include agent lifecycle management, dependency resolution, configuration handling, and coordination mechanisms. Support dynamic agent discovery and registration patterns similar to the mode registry system.",
+            "testStrategy": "Test agent registration and discovery, verify agent lifecycle management, validate agent coordination across modes, test agent dependency resolution, and ensure proper agent configuration handling"
+          },
+          {
+            "id": 10,
+            "title": "Implement Enhanced Command Execution Flow with Agent Integration",
+            "description": "Update command execution workflow to include agent evaluation and validation steps",
+            "status": "pending",
+            "dependencies": [
+              8,
+              9
+            ],
+            "details": "Implement the enhanced command execution flow: User Input → Validation → Command → Agent Evaluation → AI → Agent Validation → Result → Save. Create workflow orchestration that coordinates between modes, agents, and AI interactions. Include proper error handling, rollback mechanisms, and workflow state management.",
+            "testStrategy": "Test complete command execution workflow with agent integration, verify agent evaluation before AI interaction, validate agent validation after AI response, test error handling and rollback mechanisms, and ensure proper workflow state management"
+          },
+          {
+            "id": 11,
+            "title": "Create Agent-Specific Prompt Templates and Generation",
+            "description": "Implement prompt template system for cross-cutting agent interactions",
+            "status": "pending",
+            "dependencies": [
+              7,
+              9
+            ],
+            "details": "Build agent-specific prompt template system that allows cross-cutting agents to define their evaluation criteria, feedback formats, and validation patterns. Include template generation for agent-AI interactions, context injection for agent evaluations, and response parsing for agent feedback integration.",
+            "testStrategy": "Test agent-specific prompt template generation, verify agent evaluation prompt creation, validate agent feedback format handling, test context injection for agent evaluations, and ensure response parsing accuracy"
+          },
+          {
+            "id": 12,
+            "title": "Implement Cross-Cutting Agent Framework Foundation",
+            "description": "Create the foundational interfaces and base classes for cross-cutting agents that operate across all modes",
+            "details": "Implement the core CrossCuttingAgent interface, AgentFeedback, RequirementContribution, and AgentRecommendation types. Create base agent infrastructure for evaluation, validation, and requirement contribution workflows. This provides the foundation for Complexity Watchdog and Security Agent implementations.",
+            "status": "pending",
+            "dependencies": [
+              2
+            ],
+            "parentTaskId": 4
+          },
+          {
+            "id": 13,
+            "title": "Implement Basic Complexity Watchdog Agent",
+            "description": "Create the Complexity Watchdog agent with basic rule-based evaluation to prevent over-engineering and detect reinvention",
+            "details": "Implement ComplexityWatchdogAgent class with methods for evaluateComplexity(), detectReinvention(), suggestSimplification(), and validateComplexityJustification(). Include basic heuristics for detecting unnecessary complexity, comparing solution complexity to problem complexity, and identifying wheel-reinvention patterns. This is Phase 1 implementation with simple rule-based logic.",
+            "status": "pending",
+            "dependencies": [
+              12
             ],
             "parentTaskId": 4
           }
@@ -239,28 +311,95 @@
       {
         "id": 5,
         "title": "Implement Discovery Mode",
-        "description": "Build the Discovery mode with conversational problem exploration, vision building, and artifact generation - Phase 1 focus on CLI-based implementation",
+        "description": "Build the Discovery mode with conversational problem exploration, vision building, and artifact generation - Phase 1 focus on CLI-based implementation with integrated agent feedback for security and complexity insights",
         "status": "pending",
         "dependencies": [
           4
         ],
         "priority": "high",
-        "details": "Create Discovery mode class extending base Mode, implement conversation flow management using Claude API for problem exploration, build progressive understanding algorithms that ask follow-up questions based on user responses, create CLI-based interface for discovery conversations with clear prompts and feedback, implement problem-first conversation patterns with predefined question templates, design concrete example gathering workflows through interactive prompts, build success vision definition capabilities, create constraints and boundary identification features, implement insight capture and synthesis, create project.md generation and real-time updates during discovery process, design exit criteria validation with clear transition points to planning mode, and integrate with file-based state management system.",
-        "testStrategy": "Test conversation flow logic with Claude API, verify question generation quality and relevance, validate project.md generation and updates, test exit criteria evaluation for mode transitions, verify CLI interaction patterns, and test integration with file-based state management",
+        "details": "Create Discovery mode class extending base Mode, implement conversation flow management using Claude API for problem exploration enhanced with agent perspectives, build progressive understanding algorithms that ask follow-up questions based on user responses and agent security/complexity evaluations, create CLI-based interface for discovery conversations with clear prompts, feedback, and agent insights display, implement problem-first conversation patterns with predefined question templates informed by agent pre-evaluation, design concrete example gathering workflows through interactive prompts with agent validation, build success vision definition capabilities incorporating agent feedback on feasibility and security implications, create constraints and boundary identification features with agent input on complexity concerns, implement insight capture and synthesis combining human discovery with agent expert perspectives, create project.md generation with agent-enriched content and real-time updates during discovery process, design exit criteria validation with agent validation of discovered problem space and clear transition points to planning mode, and integrate with file-based state management system for preserving agent insights alongside human discoveries.",
+        "testStrategy": "Test conversation flow logic with Claude API and agent integration, verify agent evaluation occurs before Claude interactions and informs questioning strategy, validate agent feedback incorporation into project.md generation, test agent validation of problem space during exit criteria evaluation, verify CLI display of agent insights alongside human discovery insights, test question generation quality enhanced by agent security and complexity perspectives, and test integration with file-based state management for agent insight persistence",
         "subtasks": []
       },
       {
         "id": 11,
         "title": "Create Command Interface and Mode Switching System",
-        "description": "Implement basic CLI command system with essential commands for Phase 1 functionality",
+        "description": "Implement basic CLI command system with essential commands for Phase 1 functionality, enhanced with agent feedback display capabilities",
         "status": "pending",
         "dependencies": [
           5
         ],
         "priority": "high",
-        "details": "Build basic command parser to handle 'conductor init', 'conductor discover [prompt]', and 'conductor status' commands. Implement command validation and error handling for these core commands. Create simple help system showing available commands and their usage. Focus on clean argument parsing and user-friendly error messages. Ensure commands integrate properly with the core conductor functionality.",
-        "testStrategy": "Test command parsing for the three core commands, verify argument handling for 'discover' command, validate help system output, test error handling for invalid commands and missing arguments, verify integration with init, discover, and status functionality",
-        "subtasks": []
+        "details": "Build basic command parser to handle 'conductor init', 'conductor discover [prompt]', and 'conductor status' commands with enhanced agent feedback integration. Implement command validation and error handling for these core commands. Create simple help system showing available commands and their usage. Focus on clean argument parsing and user-friendly error messages. Ensure commands integrate properly with the core conductor functionality and display agent warnings, suggestions, and evaluation results in a clear, non-overwhelming format. Include visual indicators for agent evaluation progress and proper handling of agent error escalation.",
+        "testStrategy": "Test command parsing for the three core commands, verify argument handling for 'discover' command, validate help system output, test error handling for invalid commands and missing arguments, verify integration with init, discover, and status functionality, test agent feedback display formatting, verify progress indicators during agent evaluation, test agent warning and suggestion display, validate agent error escalation handling",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement basic command parser structure",
+            "description": "Create command parsing infrastructure for init, discover, and status commands",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Set up command parsing framework with argument validation and routing to appropriate command handlers",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Add agent feedback display system",
+            "description": "Create formatting and display logic for agent warnings, suggestions, and evaluation results",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement visual formatting for agent feedback that enhances but doesn't overwhelm primary command output. Include progress indicators and clear separation between command results and agent insights",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Enhance discover command with agent evaluation display",
+            "description": "Update discover command to show agent evaluation results and progress indicators",
+            "status": "pending",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Integrate agent feedback display into discovery sessions, showing evaluation progress and results in real-time",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Enhance status command with agent feedback integration",
+            "description": "Update status command to include agent warnings and suggestions in output",
+            "status": "pending",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Modify status command to display relevant agent feedback alongside standard status information",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Implement agent error escalation handling",
+            "description": "Add logic to handle and display agent error escalation and blocking issues",
+            "status": "pending",
+            "dependencies": [
+              2
+            ],
+            "details": "Create error handling system that properly escalates and displays agent-detected blocking issues with clear user guidance",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Create help system with agent feedback examples",
+            "description": "Build help system showing available commands and example agent feedback scenarios",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "details": "Design comprehensive help system that includes command usage and examples of how agent feedback will be displayed",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 12,
@@ -305,11 +444,132 @@
         ],
         "priority": "medium",
         "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Build Real-Time Dashboard and Control Center UI",
+        "description": "Create a comprehensive web-based dashboard for Conductor that provides real-time monitoring, state visualization, interactive control capabilities, and agent feedback visualization through a modern UI interface.",
+        "status": "pending",
+        "dependencies": [
+          3,
+          4,
+          5,
+          11
+        ],
+        "priority": "high",
+        "details": "Implement a full-stack web dashboard solution consisting of: 1) Backend WebSocket server integrated with Conductor's core architecture to publish real-time metrics, system state, process updates, and agent feedback data. Create observability hooks throughout Conductor's mode system, file operations, CLI commands, and agent evaluation processes to emit structured events. 2) Frontend React/Vue dashboard displaying current project state, active processes, system health metrics, mode-specific visualizations, and comprehensive agent feedback interfaces. Include interactive controls that mirror CLI functionality (init, discover, status, mode switching) plus agent management interfaces. 3) Real-time communication layer using WebSocket or Server-Sent Events for live updates of Conductor activities, progress indicators, system status, and agent evaluations. 4) Integration with existing .conductor/ directory structure to visualize project artifacts, discovery progress, mode transitions, and agent feedback history. 5) Agent-centric dashboard sections showing Complexity Watchdog insights, Security Agent evaluations, quality gates status, agent recommendation tracking, and agent configuration management. 6) Authentication and session management for secure access. 7) Responsive design supporting desktop and mobile access. 8) Plugin architecture for extending dashboard capabilities with mode-specific and agent-specific visualizations. The dashboard should integrate seamlessly with the existing mode system architecture and agent feedback system, allowing users to trigger Discovery mode sessions, view conversation history, monitor file system changes, track agent evaluations, and manage agent configurations in real-time.",
+        "testStrategy": "Test WebSocket connection stability and real-time data synchronization between Conductor core, agent systems, and dashboard. Verify all CLI commands can be triggered through the web interface with identical results. Test dashboard responsiveness across different screen sizes and browsers. Validate real-time updates during Discovery mode sessions, including conversation flow, artifact generation, and agent feedback display. Test authentication mechanisms and session persistence. Verify integration with .conductor/ directory structure by monitoring file changes, state updates, and agent feedback storage. Test agent feedback visualization accuracy and real-time updates. Validate agent configuration management interfaces and quality gates status tracking. Test error handling for network interruptions and connection failures. Validate performance with multiple concurrent dashboard sessions and high-frequency agent feedback events. Test mode-specific and agent-specific visualizations and controls for Discovery mode functionality and agent management.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Backend WebSocket Server and Event System",
+            "description": "Create a WebSocket server integrated with Conductor's core architecture to handle real-time communication, implement observability hooks throughout the mode system, file operations, and CLI commands to emit structured events for dashboard consumption.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Build WebSocket server using Node.js/Express with Socket.io or native WebSocket API. Create event emission system that hooks into Conductor's existing mode system, file operations, and CLI commands. Design structured event schema for different types of updates (mode transitions, file changes, process status, system health). Implement connection management, reconnection logic, and event queuing for reliability. Integration points: mode system state changes, file operation progress, CLI command execution, discovery session updates.",
+            "testStrategy": "Unit tests for event emission system, WebSocket connection handling, and event schema validation. Integration tests with mock Conductor operations to verify event flow. Load testing for concurrent connections and high-frequency events."
+          },
+          {
+            "id": 2,
+            "title": "Build Frontend Dashboard UI Framework and Core Components",
+            "description": "Develop the main React/Vue dashboard application with responsive design, core navigation, layout system, and reusable UI components that will serve as the foundation for all dashboard features.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Choose and set up modern frontend framework (React with TypeScript recommended). Implement responsive layout system supporting desktop and mobile. Create core UI components: navigation sidebar, main content area, status indicators, modal dialogs, form controls. Set up state management (Redux/Zustand/Pinia). Implement theme system and responsive breakpoints. Create component library with consistent styling using CSS-in-JS or utility framework like Tailwind. Establish routing system for different dashboard sections.",
+            "testStrategy": "Component unit tests with Jest/Vitest and React Testing Library. Visual regression tests with Storybook. Responsive design testing across device sizes. Accessibility testing with automated tools."
+          },
+          {
+            "id": 3,
+            "title": "Implement Real-Time Data Layer and WebSocket Client Integration",
+            "description": "Create the frontend WebSocket client connection, real-time data synchronization layer, and state management for live updates from the backend event system.",
+            "status": "pending",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Implement WebSocket client with automatic reconnection and connection state management. Create real-time data store that syncs with backend events. Handle event processing, data normalization, and state updates for different event types. Implement optimistic updates and conflict resolution. Create hooks/composables for components to subscribe to real-time data streams. Handle connection states (connecting, connected, disconnected) with appropriate UI feedback. Implement data persistence for offline scenarios.",
+            "testStrategy": "Unit tests for WebSocket client logic and data synchronization. Integration tests with mock WebSocket server. End-to-end tests for real-time data flow. Connection reliability tests with network interruptions."
+          },
+          {
+            "id": 4,
+            "title": "Create Interactive Control Panel and CLI Mirror Functionality",
+            "description": "Build dashboard interfaces that mirror CLI functionality including project initialization, mode switching, discovery session management, and system controls with real-time feedback and progress tracking.",
+            "status": "pending",
+            "dependencies": [
+              3
+            ],
+            "details": "Implement interactive controls for core Conductor operations: project init, mode switching (discovery/analyze), status viewing, and configuration management. Create forms and UI components for triggering CLI operations through WebSocket commands. Build progress tracking UI for long-running operations like discovery sessions. Implement command history and output display similar to terminal interface. Create mode-specific control panels with appropriate actions and visualizations. Handle operation feedback, error states, and confirmation dialogs for destructive actions.",
+            "testStrategy": "Integration tests for CLI command execution through WebSocket. User interaction tests for form validation and error handling. End-to-end tests for complete workflows (init project, start discovery, view results). Usability testing for control panel interfaces."
+          },
+          {
+            "id": 5,
+            "title": "Build Project Visualization and Monitoring Dashboard",
+            "description": "Create comprehensive visualization components for project state, discovery progress, mode transitions, file system changes, and system health metrics with interactive exploration capabilities.",
+            "status": "pending",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Build project overview dashboard showing current state, active processes, and recent activity. Create file system visualization for .conductor/ directory structure with interactive exploration. Implement discovery session progress tracking with conversation history display. Design mode transition visualizations and system health metrics dashboard. Create interactive charts and graphs for system performance, operation history, and usage patterns. Build plugin architecture for mode-specific visualizations. Implement filtering, searching, and detailed views for all monitoring data.",
+            "testStrategy": "Visual component tests for charts and visualizations. Data visualization accuracy tests with mock data sets. Performance tests for large data sets and real-time updates. User experience tests for interactive exploration features. Plugin architecture tests with sample extensions."
+          },
+          {
+            "id": 6,
+            "title": "Integrate Agent Feedback Event System and Backend Data Flow",
+            "description": "Extend the backend WebSocket server to capture and emit agent feedback events including warnings, suggestions, evaluations, and quality gate status from Complexity Watchdog and Security Agent systems.",
+            "status": "pending",
+            "dependencies": [
+              1
+            ],
+            "details": "Extend existing event emission system to hook into agent evaluation processes and feedback generation. Create structured event schema for agent feedback types (warnings, suggestions, evaluations, quality gates). Implement integration points with Complexity Watchdog and Security Agent to capture real-time feedback. Design agent feedback data models and storage for historical analysis. Create event routing for agent-specific updates and batch processing for high-frequency agent events. Implement filtering and aggregation for agent feedback streams.",
+            "testStrategy": "Integration tests with mock agent systems to verify event capture. Unit tests for agent feedback event schema validation. Performance tests for high-frequency agent feedback processing. End-to-end tests for agent feedback data flow from evaluation to dashboard display."
+          },
+          {
+            "id": 7,
+            "title": "Build Agent Feedback Visualization Components",
+            "description": "Create specialized UI components for displaying agent feedback, evaluation progress, quality gates status, and agent-specific insights with real-time updates and interactive exploration capabilities.",
+            "status": "pending",
+            "dependencies": [
+              2,
+              3,
+              6
+            ],
+            "details": "Build agent feedback display components showing warnings, suggestions, and evaluations alongside mode outputs. Create agent evaluation progress indicators and status visualization. Design quality gates dashboard showing pass/fail status and blocking issues. Implement agent recommendation tracking interface with implementation status. Create agent-specific insight panels for Complexity Watchdog and Security Agent data. Build interactive agent feedback history and pattern analysis views. Implement filtering and search capabilities for agent feedback data.",
+            "testStrategy": "Component unit tests for agent feedback display accuracy. Visual regression tests for agent-specific UI components. Integration tests for real-time agent feedback updates. User experience tests for agent insight exploration and interaction."
+          },
+          {
+            "id": 8,
+            "title": "Implement Agent Configuration and Management Interface",
+            "description": "Create dashboard interfaces for configuring agent behavior, managing agent settings, viewing agent performance metrics, and controlling agent activation/deactivation across different modes.",
+            "status": "pending",
+            "dependencies": [
+              4,
+              7
+            ],
+            "details": "Build agent configuration management interface allowing users to adjust agent sensitivity, thresholds, and behavior settings. Create agent activation/deactivation controls for different modes and contexts. Implement agent performance metrics dashboard showing evaluation frequency, accuracy, and impact on development process. Design agent recommendation implementation tracking with status updates and completion indicators. Create agent feedback preferences and notification settings interface. Implement agent-specific configuration sections for Complexity Watchdog and Security Agent customization.",
+            "testStrategy": "Integration tests for agent configuration changes and persistence. User interface tests for agent management workflows. End-to-end tests for agent behavior modification and impact verification. Usability testing for agent configuration interfaces and settings management."
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "title": "Implement Analyze Mode for Technical Codebase Analysis",
+        "description": "Build the Analyze mode with technical codebase analysis capabilities, architecture insights, security audits, and performance analysis - Phase 2 implementation focusing on agent-integrated technical exploration.",
+        "details": "Create Analyze mode class extending base Mode interface with technical analysis capabilities distinct from Discovery mode's conversational approach. Implement codebase scanning and parsing functionality using AST analysis tools for JavaScript/TypeScript, Python, and other common languages. Build architecture pattern identification algorithms that detect common design patterns, anti-patterns, and architectural styles within codebases. Create security audit integration with agent-based analysis for vulnerability detection, code quality assessment, and security best practice validation. Implement complexity analysis using cyclomatic complexity, cognitive complexity, and maintainability index calculations. Build dependency mapping system that visualizes module dependencies, identifies circular dependencies, and analyzes coupling patterns. Create performance analysis capabilities including memory usage patterns, computational complexity identification, and bottleneck detection. Integrate with external security tools and static analysis engines through agent coordination. Design technical improvement recommendation engine that suggests refactoring opportunities, performance optimizations, and architectural enhancements based on analysis results. Implement CLI interface for analyze command with options for different analysis types (--security, --complexity, --architecture, --performance). Create structured output formats for analysis results including JSON exports, markdown reports, and integration with .conductor/analysis/ directory. Build incremental analysis capabilities to focus on changed code and avoid full re-analysis. Ensure integration with existing mode registry and state management systems.",
+        "testStrategy": "Test Analyze mode instantiation and integration with mode registry system. Verify codebase parsing accuracy across different language syntaxes and project structures. Test architecture pattern detection against known codebases with documented patterns. Validate security audit integration with sample vulnerable code and verify detection accuracy. Test complexity analysis calculations against manually calculated metrics for accuracy. Verify dependency mapping visualization and circular dependency detection with complex project structures. Test performance analysis recommendations against known performance bottlenecks. Validate CLI interface with various analysis options and verify proper error handling for unsupported file types. Test structured output generation and integration with .conductor/analysis/ directory. Verify incremental analysis functionality by testing on modified codebases and ensuring only changed areas are re-analyzed.",
+        "status": "pending",
+        "dependencies": [
+          4,
+          5,
+          13
+        ],
+        "priority": "medium",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-06-28T17:46:38.125Z",
-      "updated": "2025-06-29T14:20:24.998Z",
+      "updated": "2025-06-29T14:56:28.745Z",
       "description": "Phase 1: Foundation + Discovery Mode - CLI-first implementation with Deno, file-based state management, and Discovery mode"
     }
   }
