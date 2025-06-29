@@ -310,21 +310,57 @@ task-master models --set-fallback gpt-4o-mini
 
 ## Claude Code Best Practices with Task Master
 
+### Essential Development Practices
+
+#### Task Status Management (CRITICAL)
+- **ALWAYS** maintain task and subtask statuses throughout development
+- **MUST** set tasks to "in-progress" when beginning work: `task-master set-status --id=<id> --status=in-progress`
+- **MUST** mark tasks as "done" when completed: `task-master set-status --id=<id> --status=done`
+- **MUST** update subtasks with progress: `task-master update-subtask --id=<id> --prompt="implementation notes"`
+- Use TodoWrite tool to track internal progress within Claude Code sessions
+- Never leave tasks in incorrect status - this breaks project tracking
+
+#### Code Documentation Standards (REQUIRED)
+- **ALWAYS** write comprehensive documentation for all code you create
+- Include JSDoc comments for classes, methods, and complex functions
+- Document design decisions and architectural choices in code comments
+- Create README files for new modules or significant features
+- Explain WHY not just WHAT in comments - capture intent and context
+- Use clear, descriptive names for variables, functions, and classes
+
+#### Future Work Marking (MANDATORY)
+- **ALWAYS** use TODOs and FIXMEs for incomplete or placeholder implementations
+- Format: `TODO(#task-id): Description` or `FIXME: Problem description`
+- Examples:
+  ```typescript
+  // TODO(#task-4.3): Implement dependency resolution when ModeRegistry is created
+  // FIXME: Currently returns empty array - needs integration with mode registry
+  protected getMissingDependencies(): string[] {
+    // Placeholder implementation
+    return [];
+  }
+  ```
+- Include enough detail for future implementer to understand requirements
+- Reference specific task IDs when the work relates to planned tasks
+- Mark both technical debt and intentional gaps for future phases
+
 ### Context Management
 
 - Use `/clear` between different tasks to maintain focus
 - This CLAUDE.md file is automatically loaded for context
 - Use `task-master show <id>` to pull specific task context when needed
 
-### Iterative Implementation
+### Iterative Implementation Workflow
 
 1. `task-master show <subtask-id>` - Understand requirements
-2. Explore codebase and plan implementation
-3. `task-master update-subtask --id=<id> --prompt="detailed plan"` - Log plan
-4. `task-master set-status --id=<id> --status=in-progress` - Start work
-5. Implement code following logged plan
-6. `task-master update-subtask --id=<id> --prompt="what worked/didn't work"` - Log progress
-7. `task-master set-status --id=<id> --status=done` - Complete task
+2. **REQUIRED**: `task-master set-status --id=<id> --status=in-progress` - Mark task as started
+3. Explore codebase and plan implementation
+4. `task-master update-subtask --id=<id> --prompt="detailed plan"` - Log implementation plan
+5. Implement code with proper documentation and TODOs/FIXMEs for future work
+6. `task-master update-subtask --id=<id> --prompt="what worked/didn't work"` - Log progress and findings
+7. **REQUIRED**: `task-master set-status --id=<id> --status=done` - Mark task as completed
+
+**Note**: Steps 2 and 7 are MANDATORY for proper project tracking. Skipping these breaks the task management system.
 
 ### Complex Workflows with Checklists
 
@@ -332,9 +368,11 @@ For large migrations or multi-step processes:
 
 1. Create a markdown PRD file describing the new changes: `touch task-migration-checklist.md` (prds can be .txt or .md)
 2. Use Taskmaster to parse the new prd with `task-master parse-prd --append` (also available in MCP)
-3. Use Taskmaster to expand the newly generated tasks into subtasks. Consdier using `analyze-complexity` with the correct --to and --from IDs (the new ids) to identify the ideal subtask amounts for each task. Then expand them.
-4. Work through items systematically, checking them off as completed
-5. Use `task-master update-subtask` to log progress on each task/subtask and/or updating/researching them before/during implementation if getting stuck
+3. Use Taskmaster to expand the newly generated tasks into subtasks. Consider using `analyze-complexity` with the correct --to and --from IDs (the new ids) to identify the ideal subtask amounts for each task. Then expand them.
+4. **CRITICAL**: Maintain proper task status throughout - set parent tasks to "in-progress" and mark subtasks appropriately
+5. Work through items systematically, ensuring each gets proper documentation and TODO/FIXME markers
+6. Use `task-master update-subtask` to log progress on each task/subtask and/or updating/researching them before/during implementation if getting stuck
+7. **MANDATORY**: Mark tasks as "done" only when fully complete with proper documentation
 
 ### Git Integration
 
@@ -436,6 +474,30 @@ These commands make AI calls and may take up to a minute:
 - Provides more informed task creation and updates
 - Recommended for complex technical tasks
 
----
+## Quality Assurance Checklist
 
-_This guide ensures Claude Code has immediate access to Task Master's essential functionality for agentic development workflows._
+Before considering any development session complete, ensure:
+
+### ✅ Task Management
+- [ ] All parent tasks set to appropriate status ("in-progress" while working, "done" when complete)
+- [ ] All subtasks properly updated with implementation notes and status changes
+- [ ] No tasks left in incorrect status (this breaks project tracking)
+
+### ✅ Code Quality
+- [ ] All new code has comprehensive documentation (classes, methods, complex logic)
+- [ ] Design decisions and architectural choices explained in comments
+- [ ] Clear, descriptive naming conventions followed throughout
+
+### ✅ Future Work Planning
+- [ ] All placeholder implementations marked with TODO(#task-id) or FIXME
+- [ ] Sufficient detail provided for future implementers
+- [ ] References to specific task IDs where applicable
+- [ ] Technical debt explicitly documented
+
+### ✅ Testing & Validation
+- [ ] Appropriate test coverage for new functionality
+- [ ] Tests passing with proper cleanup
+- [ ] No linting, formatting, or type checking errors
+- [ ] Code follows existing project patterns and conventions
+
+**CRITICAL**: Missing any of these items compromises project quality and continuity. Always complete this checklist before finishing a development session.

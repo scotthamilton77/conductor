@@ -12,3 +12,6 @@ export * from "./logger.ts";
 export * from "./markdown-handler.ts";
 export * from "./project-template.ts";
 export * from "./types.ts";
+
+// Mode system exports
+export { AbstractMode } from "../modes/abstract-mode.ts";
