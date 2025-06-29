@@ -1,326 +1,335 @@
-# Task Master AI - Claude Code Integration Guide
+# CLAUDE.md
 
-## Essential Commands
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Development Commands
 
 ### Core Workflow Commands
 
 ```bash
-# Project Setup
-task-master init                                    # Initialize Task Master in current project
-task-master parse-prd .taskmaster/docs/PRD.md      # Generate tasks from PRD document
-task-master models --setup                        # Configure AI models interactively
+# Development
+deno task dev                    # Run with file watching and auto-reload
+deno task build                  # Compile to executable in ./bin/conductor
+deno task test                   # Run test suite
+deno task test:watch             # Run tests with file watching
 
-# Daily Development Workflow
-task-master list                                   # Show all tasks with status
-task-master next                                   # Get next available task to work on
-task-master show <id>                             # View detailed task information (e.g., task-master show 1.2)
-task-master set-status --id=<id> --status=done    # Mark task complete
+# Code Quality
+deno task lint                   # Lint TypeScript code
+deno task fmt                    # Format code (in-place)
+deno task fmt:check              # Check formatting without changes
+deno task quality                # Run format + lint + test in sequence
 
-# Task Management
-task-master add-task --prompt="description" --research        # Add new task with AI assistance
-task-master expand --id=<id> --research --force              # Break task into subtasks
-task-master update-task --id=<id> --prompt="changes"         # Update specific task
-task-master update --from=<id> --prompt="changes"            # Update multiple tasks from ID onwards
-task-master update-subtask --id=<id> --prompt="notes"        # Add implementation notes to subtask
-
-# Analysis & Planning
-task-master analyze-complexity --research          # Analyze task complexity
-task-master complexity-report                      # View complexity analysis
-task-master expand --all --research               # Expand all eligible tasks
-
-# Dependencies & Organization
-task-master add-dependency --id=<id> --depends-on=<id>       # Add task dependency
-task-master move --from=<id> --to=<id>                       # Reorganize task hierarchy
-task-master validate-dependencies                            # Check for dependency issues
-task-master generate                                         # Update task markdown files (usually auto-called)
+# Git Integration
+deno task setup-hooks            # Configure git hooks for code quality
 ```
 
-## Key Files & Project Structure
+### Running Single Tests
 
-### Core Files
+```bash
+# Run specific test file
+deno test --allow-read --allow-write --allow-env tests/specific_test.ts
 
-- `.taskmaster/tasks/tasks.json` - Main task data file (auto-managed)
-- `.taskmaster/config.json` - AI model configuration (use `task-master models` to modify)
-- `.taskmaster/docs/PRD.md` - Product Requirements Document for parsing
-- `.taskmaster/tasks/*.txt` - Individual task files (auto-generated from tasks.json)
-- `.env` - API keys for CLI usage
-
-### Claude Code Integration Files
-
-- `CLAUDE.md` - Auto-loaded context for Claude Code (this file)
-- `.claude/settings.json` - Claude Code tool allowlist and preferences
-- `.claude/commands/` - Custom slash commands for repeated workflows
-- `.mcp.json` - MCP server configuration (project-specific)
-
-### Directory Structure
-
-```
-project/
-├── .taskmaster/
-│   ├── tasks/              # Task files directory
-│   │   ├── tasks.json      # Main task database
-│   │   ├── task-1.md      # Individual task files
-│   │   └── task-2.md
-│   ├── docs/              # Documentation directory
-│   │   ├── PRD.md        # Product requirements
-│   ├── reports/           # Analysis reports directory
-│   │   └── task-complexity-report.json
-│   ├── templates/         # Template files
-│   │   └── example_prd.txt  # Example PRD template
-│   └── config.json        # AI models & settings
-├── .claude/
-│   ├── settings.json      # Claude Code configuration
-│   └── commands/         # Custom slash commands
-├── .env                  # API keys
-├── .mcp.json            # MCP configuration
-└── CLAUDE.md            # This file - auto-loaded by Claude Code
+# Run tests matching pattern
+deno test --allow-read --allow-write --allow-env tests/ --filter "test-name"
 ```
 
-## Architecture Documents
+## Architecture Overview
 
-### Mode System Architecture
-- **Location**: `.conductor/design/mode-system-architecture.md`
-- **Purpose**: Comprehensive design for the mode-based framework
-- **Key Components**: AbstractMode base class, ModeRegistry, CLI integration, state management, prompt management
-- **Reference Implementations**: 
-  - **Discovery mode**: Problem exploration through conversational discovery (not codebase analysis)
-  - **Analyze mode**: Technical codebase analysis and architecture exploration
+### Core Framework
 
-**When working on mode system tasks (4.x), always reference this architecture document for:**
-- Interface definitions and class hierarchies
-- Integration patterns with existing systems (FileOperations, Config, Logger)
-- Mode-specific behavior patterns and AI interaction flows
-- Implementation guidelines and best practices
-- Distinction between Discovery (problem-focused) and Analyze (code-focused) modes
+**Conductor** is a conversational AI CLI tool built with Deno and TypeScript, designed for problem exploration and solution development. The architecture follows a mode-based framework pattern enabling specialized AI agents to operate within distinct contexts.
 
-**Key Design Principles:**
-- Extends existing `Mode` interface in `types.ts` for backward compatibility
-- Uses FileOperations API for all persistence needs
-- Integrates with existing CLI framework (Cliffy) without breaking changes
-- Supports dynamic mode registration and factory patterns
-- Provides context preservation and state management across sessions
+### Key Architectural Components
 
-## MCP Integration
+#### 1. Mode System Architecture (`src/modes/`)
 
-Task Master provides an MCP server that Claude Code can connect to. Configure in `.mcp.json`:
+- **Core Interface**: Unified `Mode` interface in `src/lib/types.ts` provides comprehensive capabilities for all modes
+- **Abstract Base**: `AbstractMode` class provides template method pattern implementation
+- **State Management**: Persistent state across sessions with separate configuration vs runtime state
+- **Lifecycle Hooks**: Optional `onBeforeExecute`, `onAfterExecute`, `onError` for sophisticated workflow control
+
+#### 2. CLI Framework (`src/cli.ts`)
+
+- Built on **Cliffy** command framework
+- Extensible command structure with placeholder implementations
+- Integration points for mode routing (future implementation)
+
+#### 3. Core Services (`src/lib/`)
+
+- **FileOperations** (`file-operations.ts`): Atomic file operations with validation and Git-friendly formatting
+- **ConfigManager** (`config-manager.ts`): Configuration loading/persistence with environment variable support
+- **Logger** (`logger.ts`): Structured logging with level-based output
+- **ModeRegistry** (`mode-registry.ts`): Dynamic mode discovery and dependency resolution (in development)
+
+#### 4. State Management
+
+```text
+.conductor/
+├── modes/           # Mode-specific configuration and prompts
+├── state/           # Persistent runtime state
+├── config/          # Global configuration
+└── artifacts/       # Mode-generated outputs
+```
+
+### Design Patterns
+
+- **Template Method**: `AbstractMode` handles common concerns while concrete modes override specific methods
+- **Dependency Injection**: Modes receive `FileOperations` and `Logger` instances for testability
+- **Factory Pattern**: Mode registry system for dynamic instantiation (planned)
+
+### Current Implementation Status
+
+**Phase 1 Focus**: Discovery Mode for conversational problem exploration (not technical codebase analysis)
+
+- Human-centered problem discovery through Socratic questioning
+- Problem space definition and stakeholder mapping
+- Success criteria identification
+
+**Future Modes**: Analyze Mode for technical codebase analysis and architecture exploration
+
+## File Structure & Navigation
+
+### Key Source Files
+
+- `src/main.ts` - Application entry point
+- `src/cli.ts` - CLI command structure and routing
+- `src/lib/types.ts` - Core type definitions and Mode interface
+- `src/modes/abstract-mode.ts` - Base mode implementation
+- `src/lib/mod.ts` - Public API exports
+
+### Configuration Files
+
+- `deno.json` - Deno project configuration, tasks, and dependencies  
+- `.conductor/` - Runtime workspace directory (created during initialization)
+
+### Dependencies & Technology Stack
+
+- **Runtime**: Deno with TypeScript
+- **CLI Framework**: Cliffy (`@cliffy/command`, `@cliffy/prompt`, `@cliffy/table`)
+- **Standard Library**: Deno std modules for file system, path, YAML, JSON operations
+- **Testing**: Deno built-in test runner with `@std/assert`
+
+## Code Conventions
+
+### TypeScript Standards
+
+- Strict TypeScript configuration enabled
+- Interface-first design with comprehensive type definitions
+- Async/await for all async operations
+- Error handling with typed `ModeResult<T>` return types
+
+### File Organization
+
+- Feature-based organization within `src/lib/`
+- Test files use `_test.ts` suffix in `tests/` directory
+- Export public APIs through `src/lib/mod.ts`
+
+### Mode Development
+
+When implementing new modes:
+
+1. Extend `AbstractMode` base class
+2. Implement required abstract methods: `doInitialize`, `doExecute`, `doValidate`, `doCleanup`
+3. Use dependency injection for `FileOperations` and `Logger`
+4. Maintain separation between configuration (persistent settings) and state (runtime data)
+5. Reference existing mode documentation in `src/modes/README.md`
+
+### Integration with Existing Systems
+
+- All file operations must use `FileOperations` API for consistency
+- Leverage existing `ConfigManager` for configuration persistence
+- Use structured logging through injected `Logger` instance
+- Follow existing CLI command patterns when adding new commands
+
+## Testing Strategy
+
+### Test Execution
+
+- All tests in `tests/` directory with `_test.ts` naming convention
+- Comprehensive test coverage for core services and mode implementations
+- Mock dependencies for isolated unit testing
+
+### Required Permissions
+
+Tests require specific Deno permissions:
+
+- `--allow-read` - File system read access
+- `--allow-write` - File system write access  
+- `--allow-env` - Environment variable access
+
+## Current Development Focus
+
+Based on recent commits and file structure:
+
+1. **Mode System Implementation** - Core architecture for extensible mode framework
+2. **Discovery Mode Development** - First concrete mode implementation
+3. **Configuration Management** - Settings and permissions system
+4. **Test Coverage** - Comprehensive testing for all core components
+
+Reference `src/modes/README.md` for detailed mode system documentation and implementation guidelines.
+
+## TaskMaster AI Integration
+
+This project uses **TaskMaster AI** for comprehensive task management and planning. TaskMaster provides structured task tracking with AI-powered analysis and planning capabilities.
+
+### Key TaskMaster Files & Directories
+
+#### Core TaskMaster Structure
+
+```text
+.taskmaster/
+├── docs/
+│   ├── PRD.md                    # Main Product Requirements Document
+│   ├── research/                 # AI-generated research findings
+│   └── archive/                  # Historical design documents
+├── tasks/
+│   └── tasks.json                # Primary task database (DO NOT EDIT MANUALLY)
+├── config.json                   # TaskMaster configuration and model settings
+├── state.json                    # TaskMaster runtime state
+├── reports/                      # Complexity analysis reports
+└── templates/                    # Task generation templates
+```
+
+#### Design & Architecture Documents
+
+```text
+.conductor/design/                # Current planning approach (transitioning from TaskMaster docs)
+├── mode-system-architecture.md   # Core mode system design
+├── discovery-mode-architecture.md # Discovery mode specifications
+└── discovery-mode-phases-plan*.md # Phase-specific planning documents
+```
+
+**Important**: This project is transitioning from TaskMaster docs to Conductor-managed planning. **All current design and architecture documents are located in `.conductor/design/`**, while the main PRD remains at `.taskmaster/docs/PRD.md`.
+
+### Task Organization & Structure
+
+#### Tag-Based Organization
+
+- **Primary Tag: "master"** - Current development focus and active tasks
+- **Phase Tags** - Other development phases are organized with dedicated tags (e.g., "discovery", "planning", "implementation")
+- Tasks within each tag represent different development phases or feature areas
+
+#### Task Hierarchy
+
+You should not need to read the tasks.json file directly - use taskmaster tools to read and manage the tasks.
 
 ```json
 {
-  "mcpServers": {
-    "task-master-ai": {
-      "command": "npx",
-      "args": ["-y", "--package=task-master-ai", "task-master-ai"],
-      "env": {
-        "ANTHROPIC_API_KEY": "your_key_here",
-        "PERPLEXITY_API_KEY": "your_key_here",
-        "OPENAI_API_KEY": "OPENAI_API_KEY_HERE",
-        "GOOGLE_API_KEY": "GOOGLE_API_KEY_HERE",
-        "XAI_API_KEY": "XAI_API_KEY_HERE",
-        "OPENROUTER_API_KEY": "OPENROUTER_API_KEY_HERE",
-        "MISTRAL_API_KEY": "MISTRAL_API_KEY_HERE",
-        "AZURE_OPENAI_API_KEY": "AZURE_OPENAI_API_KEY_HERE",
-        "OLLAMA_API_KEY": "OLLAMA_API_KEY_HERE"
-      }
+  "id": 1,                        // Main task ID
+  "title": "Feature Description",
+  "status": "in-progress",        // Task status (see below)
+  "dependencies": [2, 3],         // Other task IDs this depends on
+  "priority": "high",             // Priority level
+  "subtasks": [
+    {
+      "id": 1,                    // Subtask ID (unique within parent)
+      "title": "Subtask Description",
+      "status": "done",           // Independent subtask status
+      "dependencies": [2],        // Can reference other subtask IDs
+      "details": "Implementation notes..."
     }
-  }
-}
-```
-
-### Essential MCP Tools
-
-```javascript
-help; // = shows available taskmaster commands
-// Project setup
-initialize_project; // = task-master init
-parse_prd; // = task-master parse-prd
-
-// Daily workflow
-get_tasks; // = task-master list
-next_task; // = task-master next
-get_task; // = task-master show <id>
-set_task_status; // = task-master set-status
-
-// Task management
-add_task; // = task-master add-task
-expand_task; // = task-master expand
-update_task; // = task-master update-task
-update_subtask; // = task-master update-subtask
-update; // = task-master update
-
-// Analysis
-analyze_project_complexity; // = task-master analyze-complexity
-complexity_report; // = task-master complexity-report
-```
-
-## Claude Code Workflow Integration
-
-### Standard Development Workflow
-
-#### 1. Project Initialization
-
-```bash
-# Initialize Task Master
-task-master init
-
-# Create or obtain PRD, then parse it
-task-master parse-prd .taskmaster/docs/PRD.md
-
-# Analyze complexity and expand tasks
-task-master analyze-complexity --research
-task-master expand --all --research
-```
-
-If tasks already exist, another PRD can be parsed (with new information only!) using parse-prd with --append flag. This will add the generated tasks to the existing list of tasks..
-
-#### 2. Daily Development Loop
-
-```bash
-# Start each session
-task-master next                           # Find next available task
-task-master show <id>                     # Review task details
-
-# During implementation, check in code context into the tasks and subtasks
-task-master update-subtask --id=<id> --prompt="implementation notes..."
-
-# Complete tasks
-task-master set-status --id=<id> --status=done
-```
-
-#### 3. Multi-Claude Workflows
-
-For complex projects, use multiple Claude Code sessions:
-
-```bash
-# Terminal 1: Main implementation
-cd project && claude
-
-# Terminal 2: Testing and validation
-cd project-test-worktree && claude
-
-# Terminal 3: Documentation updates
-cd project-docs-worktree && claude
-```
-
-### Custom Slash Commands
-
-Create `.claude/commands/taskmaster-next.md`:
-
-```markdown
-Find the next available Task Master task and show its details.
-
-Steps:
-
-1. Run `task-master next` to get the next task
-2. If a task is available, run `task-master show <id>` for full details
-3. Provide a summary of what needs to be implemented
-4. Suggest the first implementation step
-```
-
-Create `.claude/commands/taskmaster-complete.md`:
-
-```markdown
-Complete a Task Master task: $ARGUMENTS
-
-Steps:
-
-1. Review the current task with `task-master show $ARGUMENTS`
-2. Verify all implementation is complete
-3. Run any tests related to this task
-4. Mark as complete: `task-master set-status --id=$ARGUMENTS --status=done`
-5. Show the next available task with `task-master next`
-```
-
-## Tool Allowlist Recommendations
-
-Add to `.claude/settings.json`:
-
-```json
-{
-  "allowedTools": [
-    "Edit",
-    "Bash(task-master *)",
-    "Bash(git commit:*)",
-    "Bash(git add:*)",
-    "Bash(npm run *)",
-    "mcp__task_master_ai__*"
   ]
 }
 ```
 
-## Configuration & Setup
+#### Task Status Values
 
-### API Keys Required
+- `pending` - Ready to work on (dependencies met)
+- `in-progress` - Currently being worked on  
+- `done` - Completed and verified
+- `deferred` - Postponed to later phase
+- `cancelled` - No longer needed
+- `blocked` - Waiting on external dependencies
 
-At least **one** of these API keys must be configured:
+### TaskMaster Status Management (CRITICAL)
 
-- `ANTHROPIC_API_KEY` (Claude models) - **Recommended**
-- `PERPLEXITY_API_KEY` (Research features) - **Highly recommended**
-- `OPENAI_API_KEY` (GPT models)
-- `GOOGLE_API_KEY` (Gemini models)
-- `MISTRAL_API_KEY` (Mistral models)
-- `OPENROUTER_API_KEY` (Multiple models)
-- `XAI_API_KEY` (Grok models)
+**When working on TaskMaster-managed tasks, Claude Code MUST:**
 
-An API key is required for any provider used across any of the 3 roles defined in the `models` command.
+1. **Update Task Status When Starting Work**
 
-### Model Configuration
+   ```bash
+   # Mark task as in-progress when beginning
+   task-master set-status --id=4.2 --status=in-progress
+   ```
+
+2. **Update Subtask Status and Progress**
+
+   ```bash
+   # Log implementation progress to subtasks
+   task-master update-subtask --id=4.2 --prompt="Added AbstractMode base class with lifecycle hooks"
+   
+   # Mark subtasks complete when finished
+   task-master set-status --id=4.2 --status=done
+   ```
+
+3. **Maintain Accurate Status Throughout Development**
+   - Never leave tasks in incorrect status - this breaks project tracking
+   - Use subtask updates to log progress, findings, and implementation notes
+   - Mark parent tasks as "done" only when all subtasks are complete
+
+### Dual Planning Systems
+
+**TaskMaster Planning** - Use for project-level task management:
+
+- Major features and development phases
+- Cross-cutting concerns and infrastructure work
+- Dependency tracking between major components
+- Status reporting and project progress
+
+**Claude Code TodoWrite** - Use for session-level planning:
+
+- Internal Claude Code task breakdown and progress tracking
+- Implementation steps within a single development session
+- Quick notes and reminders during active development
+- Does not replace TaskMaster status management
+
+**Example Workflow:**
+
+1. Start with `task-master show 4.2` to understand the requirements
+2. Use `TodoWrite` to plan your implementation approach within Claude Code
+3. Mark TaskMaster task as in-progress: `task-master set-status --id=4.2 --status=in-progress`
+4. Work through implementation using Claude Code todos for internal tracking
+5. Log progress to TaskMaster: `task-master update-subtask --id=4.2 --prompt="implementation notes"`
+6. Mark TaskMaster task complete: `task-master set-status --id=4.2 --status=done`
+
+### TaskMaster Integration Commands
+
+#### Essential Commands for Claude Code
 
 ```bash
-# Interactive setup (recommended)
-task-master models --setup
+# Get next available task
+task-master next
 
-# Set specific models
-task-master models --set-main claude-3-5-sonnet-20241022
-task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
-task-master models --set-fallback gpt-4o-mini
+# View specific task details
+task-master show <id>  # e.g., task-master show 4.2
+
+# Update task status
+task-master set-status --id=<id> --status=<status>
+
+# Log implementation progress
+task-master update-subtask --id=<id> --prompt="progress notes"
+
+# Add new tasks during development
+task-master add-task --prompt="new requirement discovered"
 ```
 
-## Task Structure & IDs
+#### Viewing Project Status
 
-### Task ID Format
+```bash
+# List all tasks in current tag
+task-master list
 
-- Main tasks: `1`, `2`, `3`, etc.
-- Subtasks: `1.1`, `1.2`, `2.1`, etc.
-- Sub-subtasks: `1.1.1`, `1.1.2`, etc.
+# View tasks by status
+task-master get-tasks --status=pending
 
-### Task Status Values
-
-- `pending` - Ready to work on
-- `in-progress` - Currently being worked on
-- `done` - Completed and verified
-- `deferred` - Postponed
-- `cancelled` - No longer needed
-- `blocked` - Waiting on external factors
-
-### Task Fields
-
-```json
-{
-  "id": "1.2",
-  "title": "Implement user authentication",
-  "description": "Set up JWT-based auth system",
-  "status": "pending",
-  "priority": "high",
-  "dependencies": ["1.1"],
-  "details": "Use bcrypt for hashing, JWT for tokens...",
-  "testStrategy": "Unit tests for auth functions, integration tests for login flow",
-  "subtasks": []
-}
+# Switch between development phases
+task-master use-tag <tag-name>
 ```
 
-## Claude Code Best Practices with Task Master
+## Essential Development Practices
 
-### Essential Development Practices
+### Code Documentation Standards (REQUIRED)
 
-#### Task Status Management (CRITICAL)
-- **ALWAYS** maintain task and subtask statuses throughout development
-- **MUST** set tasks to "in-progress" when beginning work: `task-master set-status --id=<id> --status=in-progress`
-- **MUST** mark tasks as "done" when completed: `task-master set-status --id=<id> --status=done`
-- **MUST** update subtasks with progress: `task-master update-subtask --id=<id> --prompt="implementation notes"`
-- Use TodoWrite tool to track internal progress within Claude Code sessions
-- Never leave tasks in incorrect status - this breaks project tracking
-
-#### Code Documentation Standards (REQUIRED)
 - **ALWAYS** write comprehensive documentation for all code you create
 - Include JSDoc comments for classes, methods, and complex functions
 - Document design decisions and architectural choices in code comments
@@ -328,10 +337,12 @@ task-master models --set-fallback gpt-4o-mini
 - Explain WHY not just WHAT in comments - capture intent and context
 - Use clear, descriptive names for variables, functions, and classes
 
-#### Future Work Marking (MANDATORY)
+### Future Work Marking (MANDATORY)
+
 - **ALWAYS** use TODOs and FIXMEs for incomplete or placeholder implementations
 - Format: `TODO(#task-id): Description` or `FIXME: Problem description`
 - Examples:
+
   ```typescript
   // TODO(#task-4.3): Implement dependency resolution when ModeRegistry is created
   // FIXME: Currently returns empty array - needs integration with mode registry
@@ -340,164 +351,7 @@ task-master models --set-fallback gpt-4o-mini
     return [];
   }
   ```
+
 - Include enough detail for future implementer to understand requirements
 - Reference specific task IDs when the work relates to planned tasks
 - Mark both technical debt and intentional gaps for future phases
-
-### Context Management
-
-- Use `/clear` between different tasks to maintain focus
-- This CLAUDE.md file is automatically loaded for context
-- Use `task-master show <id>` to pull specific task context when needed
-
-### Iterative Implementation Workflow
-
-1. `task-master show <subtask-id>` - Understand requirements
-2. **REQUIRED**: `task-master set-status --id=<id> --status=in-progress` - Mark task as started
-3. Explore codebase and plan implementation
-4. `task-master update-subtask --id=<id> --prompt="detailed plan"` - Log implementation plan
-5. Implement code with proper documentation and TODOs/FIXMEs for future work
-6. `task-master update-subtask --id=<id> --prompt="what worked/didn't work"` - Log progress and findings
-7. **REQUIRED**: `task-master set-status --id=<id> --status=done` - Mark task as completed
-
-**Note**: Steps 2 and 7 are MANDATORY for proper project tracking. Skipping these breaks the task management system.
-
-### Complex Workflows with Checklists
-
-For large migrations or multi-step processes:
-
-1. Create a markdown PRD file describing the new changes: `touch task-migration-checklist.md` (prds can be .txt or .md)
-2. Use Taskmaster to parse the new prd with `task-master parse-prd --append` (also available in MCP)
-3. Use Taskmaster to expand the newly generated tasks into subtasks. Consider using `analyze-complexity` with the correct --to and --from IDs (the new ids) to identify the ideal subtask amounts for each task. Then expand them.
-4. **CRITICAL**: Maintain proper task status throughout - set parent tasks to "in-progress" and mark subtasks appropriately
-5. Work through items systematically, ensuring each gets proper documentation and TODO/FIXME markers
-6. Use `task-master update-subtask` to log progress on each task/subtask and/or updating/researching them before/during implementation if getting stuck
-7. **MANDATORY**: Mark tasks as "done" only when fully complete with proper documentation
-
-### Git Integration
-
-Task Master works well with `gh` CLI:
-
-```bash
-# Create PR for completed task
-gh pr create --title "Complete task 1.2: User authentication" --body "Implements JWT auth system as specified in task 1.2"
-
-# Reference task in commits
-git commit -m "feat: implement JWT auth (task 1.2)"
-```
-
-### Parallel Development with Git Worktrees
-
-```bash
-# Create worktrees for parallel task development
-git worktree add ../project-auth feature/auth-system
-git worktree add ../project-api feature/api-refactor
-
-# Run Claude Code in each worktree
-cd ../project-auth && claude    # Terminal 1: Auth work
-cd ../project-api && claude     # Terminal 2: API work
-```
-
-## Troubleshooting
-
-### AI Commands Failing
-
-```bash
-# Check API keys are configured
-cat .env                           # For CLI usage
-
-# Verify model configuration
-task-master models
-
-# Test with different model
-task-master models --set-fallback gpt-4o-mini
-```
-
-### MCP Connection Issues
-
-- Check `.mcp.json` configuration
-- Verify Node.js installation
-- Use `--mcp-debug` flag when starting Claude Code
-- Use CLI as fallback if MCP unavailable
-
-### Task File Sync Issues
-
-```bash
-# Regenerate task files from tasks.json
-task-master generate
-
-# Fix dependency issues
-task-master fix-dependencies
-```
-
-DO NOT RE-INITIALIZE. That will not do anything beyond re-adding the same Taskmaster core files.
-
-## Important Notes
-
-### AI-Powered Operations
-
-These commands make AI calls and may take up to a minute:
-
-- `parse_prd` / `task-master parse-prd`
-- `analyze_project_complexity` / `task-master analyze-complexity`
-- `expand_task` / `task-master expand`
-- `expand_all` / `task-master expand --all`
-- `add_task` / `task-master add-task`
-- `update` / `task-master update`
-- `update_task` / `task-master update-task`
-- `update_subtask` / `task-master update-subtask`
-
-### File Management
-
-- Never manually edit `tasks.json` - use commands instead
-- Never manually edit `.taskmaster/config.json` - use `task-master models`
-- Task markdown files in `tasks/` are auto-generated
-- Run `task-master generate` after manual changes to tasks.json
-
-### Claude Code Session Management
-
-- Use `/clear` frequently to maintain focused context
-- Create custom slash commands for repeated Task Master workflows
-- Configure tool allowlist to streamline permissions
-- Use headless mode for automation: `claude -p "task-master next"`
-
-### Multi-Task Updates
-
-- Use `update --from=<id>` to update multiple future tasks
-- Use `update-task --id=<id>` for single task updates
-- Use `update-subtask --id=<id>` for implementation logging
-
-### Research Mode
-
-- Add `--research` flag for research-based AI enhancement
-- Requires a research model API key like Perplexity (`PERPLEXITY_API_KEY`) in environment
-- Provides more informed task creation and updates
-- Recommended for complex technical tasks
-
-## Quality Assurance Checklist
-
-Before considering any development session complete, ensure:
-
-### ✅ Task Management
-- [ ] All parent tasks set to appropriate status ("in-progress" while working, "done" when complete)
-- [ ] All subtasks properly updated with implementation notes and status changes
-- [ ] No tasks left in incorrect status (this breaks project tracking)
-
-### ✅ Code Quality
-- [ ] All new code has comprehensive documentation (classes, methods, complex logic)
-- [ ] Design decisions and architectural choices explained in comments
-- [ ] Clear, descriptive naming conventions followed throughout
-
-### ✅ Future Work Planning
-- [ ] All placeholder implementations marked with TODO(#task-id) or FIXME
-- [ ] Sufficient detail provided for future implementers
-- [ ] References to specific task IDs where applicable
-- [ ] Technical debt explicitly documented
-
-### ✅ Testing & Validation
-- [ ] Appropriate test coverage for new functionality
-- [ ] Tests passing with proper cleanup
-- [ ] No linting, formatting, or type checking errors
-- [ ] Code follows existing project patterns and conventions
-
-**CRITICAL**: Missing any of these items compromises project quality and continuity. Always complete this checklist before finishing a development session.
