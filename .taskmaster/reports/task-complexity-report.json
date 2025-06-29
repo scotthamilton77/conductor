@@ -1,0 +1,37 @@
+{
+	"meta": {
+		"generatedAt": "2025-06-29T11:56:30.338Z",
+		"tasksAnalyzed": 3,
+		"totalTasks": 5,
+		"analysisCount": 3,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 4,
+			"taskTitle": "Develop Mode-Based Framework Foundation",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the core mode system foundation into architectural components: Mode base class design, mode registry implementation, command routing system, context preservation mechanisms, prompt management, and CLI feedback systems. Focus on Discovery mode as the primary implementation target.",
+			"reasoning": "High complexity due to foundational architecture decisions that impact entire system. Requires careful design of base classes, registry patterns, and CLI integration. Multiple interconnected components need coordination."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Implement Discovery Mode",
+			"complexityScore": 9,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Decompose Discovery mode implementation into: Discovery mode class creation, conversation flow management, Claude API integration, progressive questioning algorithms, CLI interface design, problem exploration patterns, insight capture mechanisms, and project.md generation workflow.",
+			"reasoning": "Very high complexity involving AI integration, conversation management, file generation, and complex user interaction patterns. Requires sophisticated state management and API coordination across multiple features."
+		},
+		{
+			"taskId": 11,
+			"taskTitle": "Create Command Interface and Mode Switching System",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Split command interface into: command parser implementation for core commands (init, discover, status), argument validation and error handling, help system creation, and integration testing with existing conductor functionality.",
+			"reasoning": "Moderate complexity focused on CLI implementation. Well-defined scope with three specific commands, but requires solid error handling and integration with existing systems."
+		}
+	]
+}

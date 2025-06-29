@@ -83,7 +83,7 @@
         "id": 3,
         "title": "Build File-Based State Management System",
         "description": "Implement the .conductor/ directory structure with markdown-based state persistence and Git-friendly format (Phase 1 - core functionality only)",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [
           1
         ],
@@ -157,7 +157,84 @@
         "priority": "high",
         "details": "Design basic Mode base class with simple state management for Discovery mode implementation, implement mode registry pattern for mode instantiation focusing on single mode initially, create mode-specific command parsing and routing for CLI interface, implement basic context preservation mechanisms for Discovery mode operations, design mode-specific prompt management for single AI agent architecture, build foundation for mode switching without UI components, implement basic memory management for Discovery mode artifacts, and establish CLI-based mode indication and feedback systems.",
         "testStrategy": "Test Mode class instantiation for Discovery mode, verify basic state management functionality, validate CLI-based command routing, test context preservation within Discovery mode, verify mode-specific prompt handling, and test basic memory management for artifacts",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design Mode System Architecture",
+            "description": "Create comprehensive architecture design for the mode system including class diagrams, interfaces, and interaction patterns",
+            "dependencies": [],
+            "details": "Design the overall architecture for the mode system including: Mode base class hierarchy, interface definitions for mode operations, registry/factory patterns, command routing flow, context preservation mechanisms, and interaction patterns between CLI, modes, and underlying systems. Create detailed class diagrams and sequence diagrams showing how modes will be instantiated, managed, and executed.\n<info added on 2025-06-29T12:07:35.562Z>\nArchitecture design completed successfully. Created comprehensive architecture document at .conductor/design/mode-system-architecture.md covering all required components.\n\nKey Design Decisions Implemented:\n- Extended existing Mode interface in types.ts rather than replacing it for backward compatibility\n- Built AbstractMode base class providing common functionality while maintaining interface compatibility\n- Designed ModeRegistry/ModeFactory pattern for dynamic mode discovery and instantiation with dependency resolution\n- Created ModeCommandRouter for seamless CLI integration with existing Cliffy structure without breaking changes\n- Designed StateManager for context preservation using existing FileOperations API for persistence\n- Created PromptManager for mode-specific AI interaction templates\n\nArchitecture Components Delivered:\n1. Mode Base Class Hierarchy - AbstractMode extending existing Mode interface with enhanced capabilities including lifecycle management and state handling\n2. Mode Registry and Factory System - Complete dynamic mode registration system with dependency resolution and lifecycle management\n3. CLI Command Routing Integration - Extends existing Cliffy CLI framework with mode-specific commands while preserving current functionality\n4. Context Preservation and State Management - Persistent state management using file-based storage through FileOperations API\n5. Prompt Management System - Template-based AI interaction system for consistent mode behavior\n\nIntegration Strategy Confirmed:\n- Builds seamlessly on existing CLI framework (Cliffy) without breaking changes\n- Leverages FileOperations API for all persistence needs ensuring consistency\n- Integrates with existing Config and Logger systems maintaining current patterns\n- Maintains full compatibility with current project structure and conventions\n\nDiscovery Mode Implementation Plan Outlined:\n- Serves as first concrete mode and reference implementation for other modes\n- Focus on codebase analysis and exploration capabilities leveraging existing tools\n- Full integration with existing project template system for enhanced functionality\n\nThe architecture provides a robust foundation for Phase 1 implementation while supporting future extensibility and maintains complete compatibility with existing codebase patterns and conventions.\n</info added on 2025-06-29T12:07:35.562Z>",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Mode Base Class and Interfaces",
+            "description": "Create the foundational Mode base class and define core interfaces for mode operations",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement the abstract Mode base class with core methods like execute(), validate(), getPrompts(), and lifecycle hooks. Define interfaces for mode operations, configuration, and state management. Include error handling patterns and validation mechanisms that all concrete modes will inherit.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Create Mode Registry and Factory System",
+            "description": "Implement the mode registry and factory pattern for mode instantiation and management",
+            "dependencies": [
+              2
+            ],
+            "details": "Build a centralized mode registry that can discover, register, and instantiate modes dynamically. Implement factory patterns for mode creation with proper dependency injection. Include mode validation, versioning support, and error handling for invalid or missing modes.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement Discovery Mode",
+            "description": "Create the Discovery mode as the first concrete implementation of the mode system",
+            "dependencies": [
+              2
+            ],
+            "details": "Implement Discovery mode extending the Mode base class. Include discovery-specific logic for analyzing codebases, generating insights, and providing recommendations. Implement mode-specific prompts, context handling, and output formatting. This serves as the reference implementation for other modes.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Build CLI Command Routing System",
+            "description": "Implement CLI command routing and integration for mode operations",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Create CLI command structure for mode operations including mode selection, parameter passing, and execution flow. Implement command parsing, validation, and routing to appropriate mode handlers. Include help system, error reporting, and command completion support.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Implement Context Preservation and State Management",
+            "description": "Build state preservation mechanisms for maintaining context across mode operations",
+            "dependencies": [
+              2
+            ],
+            "details": "Implement context preservation system that can save and restore mode state, user preferences, and session data. Include serialization/deserialization of mode contexts, state validation, and cleanup mechanisms. Support both persistent and session-based state management.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Create Mode-Specific Prompt Management System",
+            "description": "Implement prompt templates and management for mode-specific AI interactions",
+            "details": "Build a prompt management system that allows each mode to define its own AI interaction patterns. Include template system for dynamic prompt generation, context injection mechanisms, response parsing strategies, and prompt versioning. Support both system prompts and user prompt templates specific to each mode's requirements.",
+            "status": "pending",
+            "dependencies": [
+              2
+            ],
+            "parentTaskId": 4
+          }
+        ]
       },
       {
         "id": 5,
@@ -188,7 +265,7 @@
     ],
     "metadata": {
       "created": "2025-06-28T17:46:38.125Z",
-      "updated": "2025-06-29T00:11:33.904Z",
+      "updated": "2025-06-29T12:07:38.629Z",
       "description": "Phase 1: Foundation + Discovery Mode - CLI-first implementation with Deno, file-based state management, and Discovery mode"
     }
   }
