@@ -226,6 +226,17 @@ Conductor operates through distinct modes, each with unique visual design, inter
 - Validates user experience across scenarios
 **Outputs**: Polished features, optimized code, enhanced user experience
 
+#### 🔍 Analyze Mode (Teal)
+**Purpose**: "What's here and how does it work?"
+**Interface**: Interactive codebase explorer with analysis dashboard
+**Activities**: Codebase analysis, architecture exploration, pattern identification, technical debt assessment
+**AI Behavior**: 
+- Systematically explores code structure and dependencies
+- Identifies patterns, anti-patterns, and improvement opportunities
+- Provides technical insights and recommendations
+- Maps system relationships and dependencies
+**Outputs**: Analysis reports, architecture documentation, improvement recommendations, technical debt assessments
+
 ### Mode Transitions & Context Management
 - **Visual differentiation**: Color-coded themes, mode-appropriate typography and layouts
 - **Smart transitions**: Conductor suggests mode switches based on current needs
@@ -486,6 +497,18 @@ confidence: high|medium|low
 /finalize                         # Prepare for release
 ```
 
+#### Analyze Mode Commands
+```
+/analyze [target]                 # Analyze codebase or component
+/explore [aspect]                 # Explore architecture or patterns
+/map-dependencies                 # Visualize system dependencies
+/assess-debt                      # Technical debt assessment
+/find-patterns                    # Identify code patterns
+/performance-profile              # Analyze performance characteristics
+/security-audit                   # Security analysis
+/suggest-improvements             # Improvement recommendations
+```
+
 ### Universal Commands (Work Across All Modes)
 ```
 /switch-mode [mode]               # Explicit mode transition
@@ -522,9 +545,13 @@ confidence: high|medium|low
 │   ├── test/
 │   │   ├── scenarios.md
 │   │   └── results.md
-│   └── polish/
-│       ├── improvements.md
-│       └── checklist.md
+│   ├── polish/
+│   │   ├── improvements.md
+│   │   └── checklist.md
+│   └── analyze/
+│       ├── reports.md
+│       ├── patterns.md
+│       └── recommendations.md
 └── config.json             # Conductor configuration
 ```
 

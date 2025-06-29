@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the architecture for the Conductor Mode System - a pluggable framework for different AI-powered workflow modes (discovery, planning, design, build, test, polish).
+This document outlines the architecture for the Conductor Mode System - a pluggable framework for different AI-powered workflow modes (discovery, planning, design, build, test, polish, analyze).
 
 ## Current State Analysis
 
@@ -276,27 +276,90 @@ CurrentMode.cleanup() → StateManager.saveState()
 ModeRegistry.create() → NewMode.initialize() → Context Transfer
 ```
 
-## Discovery Mode Implementation Plan
+## Mode Implementation Plans
 
-As the first concrete mode implementation, Discovery mode will serve as the reference implementation:
+### Discovery Mode Implementation Plan
+
+As the first concrete mode implementation, Discovery mode will serve as the reference implementation for problem exploration and understanding:
 
 ```typescript
 export class DiscoveryMode extends AbstractMode {
   name = "discovery";
-  description = "Explore and understand problems through AI-powered analysis";
+  description = "Explore and understand problems through conversational discovery";
   
-  // Discovery-specific capabilities
-  async analyzeCodebase(): Promise<AnalysisResult>;
-  async exploreArchitecture(): Promise<ArchitectureInsights>;
-  async identifyPatterns(): Promise<PatternAnalysis>;
-  async generateQuestions(): Promise<string[]>;
+  // Discovery-specific capabilities (problem-focused, not code-focused)
+  async buildProblemUnderstanding(input: string): Promise<ProblemInsights>;
+  async exploreUserNeeds(): Promise<UserNeedAnalysis>;
+  async defineSuccessCriteria(): Promise<SuccessMetrics>;
+  async identifyConstraints(): Promise<ConstraintAnalysis>;
+  async generateProbingQuestions(): Promise<string[]>;
   
-  // Command handlers
-  async handleAnalyze(target: string): Promise<ModeResult>;
-  async handleExplore(aspect: string): Promise<ModeResult>;
-  async handleQuestion(query: string): Promise<ModeResult>;
+  // Command handlers for problem discovery
+  async handleExplore(problemSpace: string): Promise<ModeResult>;
+  async handleWhoFor(stakeholder: string): Promise<ModeResult>;
+  async handleSuccess(criteria: string): Promise<ModeResult>;
+  async handleConstraint(limitation: string): Promise<ModeResult>;
+  
+  // Conversation flow management
+  async guideDiscoveryConversation(userInput: string): Promise<ConversationStep>;
+  async validateDiscoveryCompleteness(): Promise<ReadinessAssessment>;
 }
 ```
+
+**Key Discovery Mode Behaviors**:
+- **Problem-first approach**: Always starts with understanding the problem, not jumping to solutions
+- **Socratic questioning**: Asks "why" and "tell me more" to build deeper understanding
+- **Concrete grounding**: Converts abstract ideas into specific, measurable examples
+- **Patient exploration**: Doesn't rush to solutions or implementation details
+- **Vision building**: Helps define what success looks like before exploring how to achieve it
+
+**Discovery Artifacts**:
+- Living project document (`.conductor/project.md`) with problem space, success criteria, and constraints
+- Conversation history with key insights and assumptions identified
+- Stakeholder and user need mapping
+- Success metrics and validation approaches
+
+### Analyze Mode Implementation Plan
+
+A new mode for technical codebase analysis and exploration:
+
+```typescript
+export class AnalyzeMode extends AbstractMode {
+  name = "analyze";
+  description = "Analyze and understand existing codebases, architectures, and technical systems";
+  
+  // Analysis-specific capabilities
+  async analyzeCodebase(path?: string): Promise<CodebaseAnalysis>;
+  async exploreArchitecture(): Promise<ArchitectureInsights>;
+  async identifyPatterns(): Promise<PatternAnalysis>;
+  async assessTechnicalDebt(): Promise<TechnicalDebtReport>;
+  async mapDependencies(): Promise<DependencyGraph>;
+  async evaluatePerformance(): Promise<PerformanceAnalysis>;
+  
+  // Command handlers for technical analysis
+  async handleAnalyze(target: string): Promise<ModeResult>;
+  async handleExplore(component: string): Promise<ModeResult>;
+  async handleMap(relationship: string): Promise<ModeResult>;
+  async handleAssess(aspect: string): Promise<ModeResult>;
+  
+  // Deep technical exploration
+  async generateTechnicalQuestions(): Promise<string[]>;
+  async recommendImprovements(): Promise<ImprovementSuggestions>;
+}
+```
+
+**Key Analyze Mode Behaviors**:
+- **Technical focus**: Deep dive into code structure, patterns, and technical decisions
+- **Systematic exploration**: Methodical analysis of different system aspects
+- **Pattern recognition**: Identifies architectural patterns, anti-patterns, and opportunities
+- **Improvement suggestions**: Provides actionable recommendations for technical enhancements
+- **Dependency mapping**: Understands relationships and interconnections
+
+**Analyze Artifacts**:
+- Codebase analysis reports with findings and recommendations
+- Architecture diagrams and documentation
+- Technical debt assessment and remediation roadmap
+- Performance analysis and optimization opportunities
 
 ## Integration Points
 
