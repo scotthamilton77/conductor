@@ -26,6 +26,62 @@ Discovery Mode embodies a **problem-first, patient exploration** approach that:
 
 ## Technical Architecture
 
+### Type System and Strongly-Typed IDs
+
+Discovery Mode uses a comprehensive type-safe ID system to prevent confusion and enable robust relationships between entities:
+
+```typescript
+// Strongly-typed ID system
+type TopicId = string & { readonly brand: unique symbol };
+type SessionId = string & { readonly brand: unique symbol };
+type QuestionId = string & { readonly brand: unique symbol };
+type InsightId = string & { readonly brand: unique symbol };
+type StakeholderId = string & { readonly brand: unique symbol };
+type EntityId = string & { readonly brand: unique symbol };
+type ArtifactId = string & { readonly brand: unique symbol };
+type RevisionId = string & { readonly brand: unique symbol };
+
+// ID creation utilities
+function createTopicId(value: string): TopicId {
+  return value as TopicId;
+}
+
+function createSessionId(value: string): SessionId {
+  return value as SessionId;
+}
+
+// Additional ID types as needed...
+
+// Cross-phase topic support
+enum ProjectPhase {
+  DISCOVERY = "discovery",
+  PLANNING = "planning", 
+  DESIGN = "design",
+  BUILD = "build",
+  TEST = "test",
+  POLISH = "polish",
+  ANALYZE = "analyze"
+}
+
+enum TopicPriority {
+  CRITICAL = "critical",
+  HIGH = "high", 
+  MEDIUM = "medium",
+  LOW = "low",
+  ARCHIVED = "archived"
+}
+
+enum TopicRelationship {
+  REDUNDANT_WITH = "redundant_with",
+  RELATES_TO = "relates_to", 
+  BLOCKED_BY = "blocked_by",
+  ANSWERS = "answers",
+  INVALIDATES = "invalidates",
+  SPAWNED_FROM = "spawned_from",
+  MERGED_INTO = "merged_into"
+}
+```
+
 ### Class Structure
 
 ```typescript
@@ -363,6 +419,7 @@ class SubModeManager {
 #### Sub-mode Behaviors
 
 **Guided Sub-mode**:
+
 ```text
 That really helps me understand the urgency. Are you ready for my next question?
 
@@ -373,6 +430,7 @@ Or would you prefer to:
 ```
 
 **Responsive Sub-mode**:
+
 ```text
 That really helps me understand the urgency. Are you ready for my next question?
 
@@ -380,6 +438,7 @@ That really helps me understand the urgency. Are you ready for my next question?
 ```
 
 **Collaborative Sub-mode** (adaptive):
+
 ```text
 That really helps me understand the urgency. Are you ready for my next question?
 
@@ -395,18 +454,51 @@ That really helps me understand the urgency. Are you ready for my next question?
 Discovery conversations follow a flexible state machine that adapts based on user responses:
 
 ```typescript
+// Topic-centric conversation state
 export interface ConversationState {
-  currentPhase: DiscoveryPhase;
-  completedPhases: Set<DiscoveryPhase>;
-  activeTopics: Topic[];
-  identifiedStakeholders: Stakeholder[];
-  discoveredConstraints: Constraint[];
-  successCriteria: SuccessCriterion[];
-  confidence: ConfidenceLevel;
-  readiness: ReadinessIndicators;
+  // Topic management
+  activeTopics: Map<TopicId, TopicState>;
+  currentFocus: TopicId | null;
+  
+  // Global discovery state (cross-topic)
+  overallConfidence: ConfidenceLevel;
+  globalReadiness: ReadinessIndicators;
+  
+  // Session management
+  conversationHistory: ConversationTurn[];
+  sessionMetadata: SessionMetadata;
 }
 
-export enum DiscoveryPhase {
+export interface TopicState {
+  topicId: TopicId;
+  title: string;
+  priority: TopicPriority;
+  
+  // Cross-phase support - topics can exist in multiple project phases
+  activeInPhases: Set<ProjectPhase>;
+  
+  // Discovery-specific progress (when active in Discovery phase)
+  discoveryStage: DiscoveryStage;
+  completedStages: Set<DiscoveryStage>;
+  
+  // Topic-specific discoveries
+  stakeholders: Stakeholder[];
+  constraints: Constraint[];
+  successCriteria: SuccessCriterion[];
+  insights: Insight[];
+  
+  // Topic state
+  confidence: ConfidenceLevel;
+  readiness: ReadinessIndicators;
+  questionQueue: Map<QuestionId, QuestionTodo>;
+  lastActivity: Date;
+  
+  // Future: Topic relationships (Phase 2+)
+  relationships?: Map<TopicId, TopicRelationship>;
+}
+
+// Discovery stages within topics (not to be confused with project phases)
+export enum DiscoveryStage {
   INITIAL_EXPLORATION = "initial_exploration",
   PROBLEM_DEFINITION = "problem_definition",
   STAKEHOLDER_MAPPING = "stakeholder_mapping", 
@@ -416,7 +508,150 @@ export enum DiscoveryPhase {
   VALIDATION = "validation",
   SYNTHESIS = "synthesis"
 }
+
 ```
+
+#### Non-Immutable Stage Navigation
+
+Discovery stages within topics are **non-immutable** - users can freely navigate backward to revise earlier discoveries as new insights emerge. This flexibility is essential for authentic discovery processes where understanding evolves.
+
+```typescript
+interface StageNavigationManager {
+  // Backward navigation within topics
+  async jumpToStage(topicId: TopicId, targetStage: DiscoveryStage): Promise<StageTransition>;
+  async reopenStage(topicId: TopicId, stage: DiscoveryStage, reason: string): Promise<void>;
+  
+  // Change tracking
+  async trackStageRevision(revision: StageRevision): Promise<void>;
+  async getStageHistory(topicId: TopicId, stage: DiscoveryStage): Promise<StageRevision[]>;
+  
+  // Impact assessment
+  async assessRevisionImpact(revision: StageRevision): Promise<ImpactAssessment>;
+  async suggestRelatedUpdates(revision: StageRevision): Promise<UpdateSuggestion[]>;
+}
+
+interface StageRevision {
+  revisionId: RevisionId;
+  topicId: TopicId;
+  stageId: DiscoveryStage;
+  timestamp: Date;
+  changes: Change[];
+  reason: string;
+  impactedArtifacts: ArtifactId[];
+  userInitiated: boolean;
+}
+
+interface ImpactAssessment {
+  affectedStages: DiscoveryStage[];
+  impactedTopics: TopicId[];
+  outdatedArtifacts: ArtifactId[];
+  conflictingInsights: InsightId[];
+  recommendedActions: RecommendedAction[];
+}
+
+class StageRevisionHandler {
+  async handleStageJump(topicId: TopicId, fromStage: DiscoveryStage, toStage: DiscoveryStage): Promise<void> {
+    // 1. Preserve current state
+    await this.preserveCurrentState(topicId, fromStage);
+    
+    // 2. Load target stage context
+    const targetContext = await this.loadStageContext(topicId, toStage);
+    
+    // 3. Transition conversation state
+    await this.transitionToStage(topicId, toStage, targetContext);
+    
+    // 4. Update user interface
+    await this.updateNavigationIndicators(topicId, fromStage, toStage);
+  }
+  
+  async processStageRevision(revision: StageRevision): Promise<void> {
+    // 1. Apply changes to stage data
+    await this.applyRevisionChanges(revision);
+    
+    // 2. Assess downstream impact
+    const impact = await this.assessRevisionImpact(revision);
+    
+    // 3. Update affected artifacts
+    await this.updateAffectedArtifacts(impact);
+    
+    // 4. Track revision for future reference
+    await this.trackRevision(revision);
+  }
+}
+```
+
+#### Stage Navigation User Experience
+
+```text
+🌱 Discovery Mode - Problem Definition Stage
+
+Current Topic: Inventory Management Issues
+Progress: ████████░░ 80% complete
+
+You mentioned earlier that "customers get frustrated." I'd like to 
+understand that better. What specific behaviors do you see?
+
+> User: Actually, I realize I wasn't clear about who the main stakeholders are. 
+         Can we go back to that?
+
+Navigation Options:
+← Back to Stakeholder Mapping
+↻ Restart Problem Definition  
+→ Continue to Success Criteria
+📋 View All Stages
+🔄 Switch Topics
+
+[User selects "Back to Stakeholder Mapping"]
+
+🌱 Discovery Mode - Stakeholder Mapping Stage (Revisited)
+
+Topic: Inventory Management Issues
+
+Let's revisit who's affected by this inventory problem. You've identified:
+- Customers (get frustrated during stockouts)
+- Staff (confusion during peak hours)
+
+What other stakeholders should we consider?
+```
+
+#### Change Impact Management
+
+When users revise earlier discoveries, the system tracks impacts and suggests updates:
+
+```typescript
+class ChangeImpactTracker {
+  async analyzeRevisionImpact(revision: PhaseRevision): Promise<void> {
+    const impactedElements = await this.findImpactedElements(revision);
+    
+    // Assess artifact consistency
+    const artifactImpacts = await this.assessArtifactImpacts(impactedElements);
+    
+    // Check for insight conflicts
+    const conflictingInsights = await this.findConflictingInsights(revision);
+    
+    // Generate user-friendly update suggestions
+    const suggestions = await this.generateUpdateSuggestions(
+      artifactImpacts, 
+      conflictingInsights
+    );
+    
+    await this.presentUpdateOptions(suggestions);
+  }
+  
+  private async presentUpdateOptions(suggestions: UpdateSuggestion[]): Promise<void> {
+    if (suggestions.length > 0) {
+      // Show user what might need updating
+      await this.showImpactSummary(suggestions);
+      
+      // Let user choose which updates to apply
+      await this.offerSelectiveUpdates(suggestions);
+    }
+  }
+}
+```
+
+**Phase 1 Scope**: Within-Discovery-mode phase jumping and basic change tracking
+**Deferred to Phase 3**: Cross-mode change propagation (Discovery → Planning → Build) via Task #12
 
 #### Conversation Flow Patterns
 
@@ -509,6 +744,186 @@ export class QuestionSelector {
 }
 ```
 
+### Information Capture and Storage Architecture
+
+Discovery Mode implements a comprehensive 3-phase approach to information capture, organization, and retrieval that evolves from immediate capture to advanced semantic search.
+
+#### Phase 1: Real-time Capture and Basic Organization
+
+The foundation phase focuses on structured data capture during conversations with immediate organization for basic retrieval:
+
+```typescript
+// Multi-layered capture during conversation
+interface ConversationCapture {
+  rawTranscript: ConversationTurn[];
+  extractedEntities: Entity[];     // People, problems, constraints, etc.
+  taggedInsights: TaggedInsight[]; // Manually/auto-tagged key discoveries
+  relationshipMap: Relationship[]; // How entities connect
+  contextMetadata: ContextMetadata;
+}
+
+interface DiscoveryKnowledgeBase {
+  topics: Map<TopicId, TopicGraph>;
+  entities: Map<EntityId, EntityRecord>;
+  relationships: Relationship[];
+  insights: Insight[];
+  patterns: DiscoveredPattern[];
+  sessions: Map<SessionId, SessionRecord>;
+}
+
+class DiscoveryKnowledgeCapture {
+  // Real-time extraction during conversation
+  async captureUserResponse(response: string, context: ConversationContext): Promise<CaptureResult> {
+    const entities = await this.extractEntities(response);
+    const insights = await this.identifyInsights(response, context);
+    const relationships = await this.inferRelationships(entities, context);
+    
+    // Update knowledge base immediately
+    await this.updateKnowledgeBase({entities, insights, relationships});
+    
+    // Make searchable in real-time
+    await this.updateBasicIndex({entities, insights, relationships});
+    
+    return {entities, insights, relationships};
+  }
+  
+  // Structured storage
+  async updateKnowledgeBase(info: CapturedInformation): Promise<void> {
+    await this.fileOps.atomicWrite('.conductor/modes/discovery/knowledge/entities.json', 
+      JSON.stringify(this.knowledgeBase.entities, null, 2));
+    await this.fileOps.atomicWrite('.conductor/modes/discovery/knowledge/insights.json',
+      JSON.stringify(this.knowledgeBase.insights, null, 2));
+  }
+}
+```
+
+**Phase 1 File Structure**:
+
+```text
+.conductor/modes/discovery/
+├── sessions/
+│   ├── session-2024-12-29.md           # Raw conversation transcript
+│   └── session-2024-12-29.json         # Structured session data
+├── knowledge/
+│   ├── entities.json                   # All discovered entities
+│   ├── insights.json                   # Key insights with metadata
+│   ├── relationships.json              # Entity relationships
+│   └── topics/
+│       ├── inventory-management.md     # Topic-specific insights
+│       └── stakeholder-concerns.md
+├── artifacts/
+│   ├── project-documents/              # Generated project.md files
+│   └── summaries/                      # Conversation summaries
+└── state/
+    └── current-knowledge-base.json     # Complete knowledge graph
+```
+
+#### Phase 2: Basic Search and Retrieval
+
+Adds simple but effective search capabilities for immediate productivity:
+
+```typescript
+interface BasicSearchCapabilities {
+  // Text-based search
+  searchByText(query: string): Promise<SearchResult[]>;
+  searchByDateRange(start: Date, end: Date): Promise<SearchResult[]>;
+  
+  // Entity-based search
+  searchByEntityType(entityType: EntityType): Promise<EntityRecord[]>;
+  searchByStakeholder(stakeholderId: StakeholderId): Promise<SearchResult[]>;
+  
+  // Topic-based search
+  searchByTopic(topicId: TopicId): Promise<TopicSearchResult>;
+  findRelatedTopics(topicId: TopicId): Promise<TopicId[]>;
+  
+  // Insight search
+  searchInsightsByTag(tags: string[]): Promise<Insight[]>;
+  findInsightsByConfidence(minConfidence: number): Promise<Insight[]>;
+}
+
+class BasicSearchEngine {
+  private textIndex: Map<string, Set<string>> = new Map(); // word -> document IDs
+  private entityIndex: Map<EntityType, EntityRecord[]> = new Map();
+  private topicIndex: Map<TopicId, TopicSearchData> = new Map();
+  
+  async buildSearchIndex(): Promise<void> {
+    // Build text index from all documents
+    for (const [sessionId, session] of this.knowledgeBase.sessions) {
+      const words = this.tokenizeText(session.transcript);
+      for (const word of words) {
+        if (!this.textIndex.has(word)) {
+          this.textIndex.set(word, new Set());
+        }
+        this.textIndex.get(word)!.add(sessionId);
+      }
+    }
+    
+    // Build entity and topic indexes
+    await this.indexEntities();
+    await this.indexTopics();
+  }
+  
+  async search(query: SearchQuery): Promise<SearchResult[]> {
+    const results: SearchResult[] = [];
+    
+    // Text search
+    if (query.text) {
+      results.push(...await this.searchText(query.text));
+    }
+    
+    // Entity search
+    if (query.entityType) {
+      results.push(...await this.searchEntities(query.entityType));
+    }
+    
+    // Topic search
+    if (query.topicId) {
+      results.push(...await this.searchTopic(query.topicId));
+    }
+    
+    return this.rankAndDeduplicateResults(results);
+  }
+}
+```
+
+#### Phase 3: Advanced Indexing and Semantic Search
+
+Future enhancement for sophisticated information retrieval:
+
+```typescript
+interface AdvancedSearchCapabilities {
+  // Semantic search
+  semanticSearch(query: string): Promise<SemanticSearchResult[]>;
+  findSimilarInsights(insight: Insight): Promise<Insight[]>;
+  
+  // AI-powered querying
+  askQuestion(question: string): Promise<AnswerWithSources>;
+  explainConcept(concept: string): Promise<ConceptExplanation>;
+  
+  // Pattern recognition
+  findRecurringPatterns(criteria: PatternCriteria): Promise<Pattern[]>;
+  identifyKnowledgeGaps(): Promise<KnowledgeGap[]>;
+  suggestExplorationAreas(): Promise<ExplorationSuggestion[]>;
+  
+  // Cross-topic analysis
+  analyzeTopicRelationships(): Promise<TopicRelationshipGraph>;
+  findConflictingInsights(): Promise<ConflictAnalysis[]>;
+}
+
+// Deferred to Phase 3
+class SemanticSearchEngine {
+  async generateEmbeddings(content: string): Promise<number[]>;
+  async findSimilarContent(embedding: number[], threshold: number): Promise<ContentMatch[]>;
+  async buildSemanticIndex(): Promise<void>;
+}
+```
+
+**Implementation Timeline**:
+
+- **Phase 1** (Current): Real-time capture with basic file organization
+- **Phase 2** (Next): Simple text and entity search capabilities  
+- **Phase 3** (Future): Advanced semantic search and AI-powered analysis
+
 ### Artifact Generation
 
 Discovery Mode generates structured artifacts that capture both explicit information and emergent insights:
@@ -530,6 +945,160 @@ export class DiscoveryArtifactGenerator {
   async generateValidationPlan(validationNeeds: ValidationNeed[]): Promise<ValidationPlan>;
 }
 ```
+
+### Topic Management and Resumption Interface
+
+A core Phase 1 requirement, Discovery Mode provides comprehensive topic visibility and seamless resumption capabilities to support multiple parallel discovery threads:
+
+```typescript
+interface TopicManagementInterface {
+  // Topic visibility
+  async listActiveTopics(): Promise<TopicSummary[]>;
+  async showTopicDetails(topicId: TopicId): Promise<TopicDetails>;
+  async getTopicTimeline(topicId: TopicId): Promise<Timeline>;
+  
+  // Topic resumption
+  async resumeTopic(topicId: TopicId): Promise<ConversationContext>;
+  async switchToTopic(topicId: TopicId): Promise<void>;
+  async createNewTopic(title: string, initialContext?: string): Promise<TopicId>;
+  
+  // Topic search and navigation
+  async searchTopicHistory(query: string): Promise<SearchResult[]>;
+  async findRelatedTopics(topicId: TopicId): Promise<TopicId[]>;
+  async archiveTopic(topicId: TopicId, reason?: string): Promise<void>;
+}
+
+interface TopicSummary {
+  topicId: TopicId;
+  title: string;
+  priority: TopicPriority;
+  lastActivity: Date;
+  discoveryProgress: ProgressIndicator;
+  unreadInsights: number;
+  nextAction?: string;  // "awaiting your input", "needs clarification", etc.
+  activeStages: DiscoveryStage[];
+  totalStakeholders: number;
+  keyConstraints: string[];
+}
+
+interface TopicDetails extends TopicSummary {
+  fullConversationHistory: ConversationTurn[];
+  allInsights: Insight[];
+  questionQueue: QuestionTodo[];
+  stakeholderDetails: Stakeholder[];
+  constraintDetails: Constraint[];
+  successCriteriaDetails: SuccessCriterion[];
+  relatedArtifacts: ArtifactId[];
+}
+
+class TopicManager {
+  async createTopicSummary(topicState: TopicState): Promise<TopicSummary> {
+    const progress = this.calculateDiscoveryProgress(topicState);
+    const nextAction = await this.determineNextAction(topicState);
+    const unreadInsights = this.countUnreadInsights(topicState);
+    
+    return {
+      topicId: topicState.topicId,
+      title: topicState.title,
+      priority: topicState.priority,
+      lastActivity: topicState.lastActivity,
+      discoveryProgress: progress,
+      unreadInsights,
+      nextAction,
+      activeStages: Array.from(topicState.completedStages),
+      totalStakeholders: topicState.stakeholders.length,
+      keyConstraints: topicState.constraints.map(c => c.description).slice(0, 3)
+    };
+  }
+  
+  async resumeTopicConversation(topicId: TopicId): Promise<ConversationContext> {
+    const topicState = await this.loadTopicState(topicId);
+    const lastConversationTurn = this.getLastConversationTurn(topicState);
+    const pendingQuestions = this.getPendingQuestions(topicState);
+    
+    // Restore conversation context
+    const context: ConversationContext = {
+      currentTopic: topicState,
+      conversationHistory: topicState.conversationHistory || [],
+      lastUserInput: lastConversationTurn?.userInput,
+      pendingQuestions,
+      discoveryProgress: this.calculateProgress(topicState),
+      nextSuggestedAction: await this.suggestNextAction(topicState)
+    };
+    
+    return context;
+  }
+}
+```
+
+#### Topic Dashboard User Experience
+
+Users see clear topic overview with actionable resumption options:
+
+```text
+🌱 Discovery Mode - Your Active Topics
+
+📋 Active Topics (3):
+
+┌─ 🔥 CRITICAL: Authentication Security (2 hours ago)
+│  Discovery Progress: ████████░░ 80% | 3 new insights since last visit
+│  Current Stage: Constraint Identification
+│  Next Action: Review security requirements with stakeholders
+│  Stakeholders: 4 identified | Key Constraints: Compliance, Budget, Timeline
+│
+├─ ⭐ HIGH: User Onboarding Flow (yesterday) 
+│  Discovery Progress: ██████░░░░ 60% | Ready for your input
+│  Current Stage: Success Definition
+│  Next Action: "Tell me about first-time user goals"
+│  Stakeholders: 2 identified | Key Constraints: Technical complexity
+│
+└─ 📋 MEDIUM: Database Migration Strategy (3 days ago)
+   Discovery Progress: ███░░░░░░░ 30% | Paused - awaiting constraints
+   Current Stage: Problem Definition
+   Next Action: Explore performance requirements
+   Stakeholders: 1 identified | Key Constraints: None yet defined
+
+Commands:
+- Type topic name or number to resume (e.g., "Authentication" or "1")
+- "new topic [title]" to start new discussion
+- "search [query]" to find past insights
+- "archive [topic]" to close completed topics
+
+What would you like to explore?
+```
+
+#### Topic Resumption Flow
+
+Seamless context restoration when returning to topics:
+
+```text
+> User: Authentication
+
+🌱 Resuming Topic: Authentication Security
+
+Last we discussed the OAuth integration concerns with your security team.
+You mentioned compliance requirements were still being clarified.
+
+📊 Progress Summary:
+✅ Problem Definition: OAuth complexity affecting user experience
+✅ Stakeholder Mapping: Security team, Dev team, Compliance, End users  
+✅ Need Exploration: Balance security with user experience
+🔄 Current: Constraint Identification (80% complete)
+
+💡 Key Insights Since Last Session:
+- Security team prefers SAML over OAuth for enterprise features
+- Compliance requires 2FA for admin accounts
+- Dev team concerned about implementation timeline
+
+🎯 Where we left off:
+You were going to check with compliance about specific requirements 
+for user session management. 
+
+Did you have a chance to follow up on that, or would you like to 
+explore a different aspect of the authentication challenge?
+```
+
+This interface ensures users never lose context when managing multiple discovery topics and can seamlessly switch between different problem explorations.
 
 ### Integration Points
 
