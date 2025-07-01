@@ -4,8 +4,9 @@
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { DiscoveryMode } from "../src/modes/discovery-mode.ts";
-import { testFileOperations } from "../src/lib/file-operations.ts";
+import { FileOperations, testFileOperations } from "../src/lib/file-operations.ts";
 import { type Logger } from "../src/lib/types.ts";
+import { createStateId } from "../src/lib/type-utils.ts";
 
 // Mock logger for testing
 class MockLogger implements Logger {
@@ -54,7 +55,7 @@ Deno.test("DiscoveryMode - initialization", async () => {
 
 Deno.test("DiscoveryMode - conversation flow", async () => {
   const testDir = await Deno.makeTempDir({ prefix: "conductor_test_discovery_" });
-  const fileOps = new (await import("../src/lib/file-operations.ts")).FileOperations(testDir);
+  const fileOps = new FileOperations(testDir, undefined, true);
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
@@ -81,7 +82,7 @@ Deno.test("DiscoveryMode - conversation flow", async () => {
 
 Deno.test("DiscoveryMode - state management", async () => {
   const testDir = await Deno.makeTempDir({ prefix: "conductor_test_discovery_" });
-  const fileOps = new (await import("../src/lib/file-operations.ts")).FileOperations(testDir);
+  const fileOps = new FileOperations(testDir, undefined, true);
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
@@ -94,7 +95,7 @@ Deno.test("DiscoveryMode - state management", async () => {
     await mode.execute("Remote workers");
 
     // Verify state is being maintained
-    const state = await mode.loadState();
+    const state = await mode.loadState(createStateId("discovery-session"));
     assertExists(state);
 
     // Type-safe access to discovery state properties
@@ -115,7 +116,7 @@ Deno.test("DiscoveryMode - state management", async () => {
 
 Deno.test("DiscoveryMode - conversation completion", async () => {
   const testDir = await Deno.makeTempDir({ prefix: "conductor_test_discovery_" });
-  const fileOps = new (await import("../src/lib/file-operations.ts")).FileOperations(testDir);
+  const fileOps = new FileOperations(testDir, undefined, true);
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
@@ -149,7 +150,7 @@ Deno.test("DiscoveryMode - conversation completion", async () => {
 
 Deno.test("DiscoveryMode - validation", async () => {
   const testDir = await Deno.makeTempDir({ prefix: "conductor_test_discovery_" });
-  const fileOps = new (await import("../src/lib/file-operations.ts")).FileOperations(testDir);
+  const fileOps = new FileOperations(testDir, undefined, true);
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 
@@ -177,7 +178,7 @@ Deno.test("DiscoveryMode - validation", async () => {
 
 Deno.test("DiscoveryMode - cleanup and artifact generation", async () => {
   const testDir = await Deno.makeTempDir({ prefix: "conductor_test_discovery_" });
-  const fileOps = new (await import("../src/lib/file-operations.ts")).FileOperations(testDir);
+  const fileOps = new FileOperations(testDir, undefined, true);
   const logger = new MockLogger();
   const mode = new DiscoveryMode(fileOps, logger);
 

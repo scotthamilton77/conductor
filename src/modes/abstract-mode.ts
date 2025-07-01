@@ -15,6 +15,7 @@ import {
   type StateMigration,
   type StateValidationResult,
 } from "../lib/types.ts";
+import { createStateId, type ModeId, type StateId } from "../lib/type-utils.ts";
 
 /**
  * Abstract base class implementing Mode interface
@@ -32,11 +33,11 @@ export abstract class AbstractMode implements Mode {
   protected readonly COMPRESSION_ENABLED = true;
 
   constructor(
-    public readonly id: string,
+    public readonly id: ModeId,
     public readonly name: string,
     public readonly description: string,
     public readonly version: string = "1.0.0",
-    public readonly dependencies: string[] = [],
+    public readonly dependencies: ModeId[] = [],
     fileOps: FileOperations,
     logger: Logger,
     initialConfig?: Partial<ModeConfig>,
@@ -44,6 +45,7 @@ export abstract class AbstractMode implements Mode {
     this.fileOps = fileOps;
     this.logger = logger;
     this.config = {
+      id: this.id,
       version: this.version,
       enabled: true,
       dependencies: this.dependencies,
@@ -159,7 +161,7 @@ export abstract class AbstractMode implements Mode {
    * Save mode state for context preservation with validation and checksumming
    */
   async saveState(state: Partial<ModeState>): Promise<void> {
-    const stateId = state.id || `${this.id}-${Date.now()}`;
+    const stateId = state.id || createStateId(`${this.id}-${Date.now()}`);
     const fullState: ModeState = {
       id: stateId,
       modeId: this.id,
@@ -218,19 +220,24 @@ export abstract class AbstractMode implements Mode {
   /**
    * Load previously saved state with validation and automatic migration
    */
-  async loadState(stateId?: string): Promise<ModeState | null> {
+  async loadState(stateId?: StateId): Promise<ModeState | null> {
     try {
       if (!stateId) {
         // Find most recent state
         const stateDir = `state/${this.id}`;
+        this.logger.debug(`AI: Looking for state files in ${stateDir}`);
         const files = await this.fileOps.listFiles(stateDir);
-        if (files.length === 0) return null;
+        this.logger.debug(`AI: Found ${files.length} state files`);
+        if (files.length === 0) {
+          this.logger.debug(`AI: No state files found in ${stateDir}`);
+          return null;
+        }
 
         // Sort by timestamp and get most recent
         files.sort((a, b) => b.path.localeCompare(a.path));
         // Extract just the filename without .json extension
         const filename = files[0].path.split("/").pop() || files[0].path;
-        stateId = filename.replace(".json", "");
+        stateId = createStateId(filename.replace(".json", ""));
       }
 
       const statePath = `state/${this.id}/${stateId}.json`;
@@ -298,6 +305,9 @@ export abstract class AbstractMode implements Mode {
       return state;
     } catch (error) {
       this.logger.warn(`AI: Failed to load state ${stateId} for mode ${this.id}:`, error);
+      if (error instanceof Error) {
+        this.logger.debug(`AI: Error type: ${error.constructor.name}, message: ${error.message}`);
+      }
 
       // Enhanced error recovery: attempt to load from backup
       if (stateId) {
@@ -315,7 +325,7 @@ export abstract class AbstractMode implements Mode {
   /**
    * Clear saved state
    */
-  async clearState(stateId?: string): Promise<void> {
+  async clearState(stateId?: StateId): Promise<void> {
     try {
       if (stateId) {
         const statePath = `state/${this.id}/${stateId}.json`;
@@ -546,7 +556,7 @@ export abstract class AbstractMode implements Mode {
   /**
    * Attempt to recover state from backup files
    */
-  protected async tryLoadBackupState(stateId: string): Promise<ModeState | null> {
+  protected async tryLoadBackupState(stateId: StateId): Promise<ModeState | null> {
     try {
       const stateDir = `state/${this.id}`;
       const files = await this.fileOps.listFiles(stateDir);

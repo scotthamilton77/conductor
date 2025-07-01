@@ -13,6 +13,9 @@ import {
   type ModeState,
   type StateValidationResult,
 } from "../lib/types.ts";
+import { createTemplateId } from "../lib/type-utils.ts";
+import { PromptManager, type ResponseFormat } from "../lib/prompt-manager.ts";
+import { createStateId, DISCOVERY_MODE_ID } from "../lib/type-utils.ts";
 
 /**
  * Conversation state for Discovery Mode
@@ -32,6 +35,8 @@ interface DiscoveryState extends ModeState {
  * The full sophisticated Discovery Mode implementation will be handled in future tasks.
  */
 export class DiscoveryMode extends AbstractMode {
+  private static readonly DEFAULT_STATE_ID = createStateId("discovery-session");
+  private promptManager: PromptManager;
   private readonly questions = [
     "What problem are you trying to solve?",
     "Who experiences this problem most frequently?",
@@ -45,7 +50,7 @@ export class DiscoveryMode extends AbstractMode {
     logger: Logger,
   ) {
     super(
-      "discovery",
+      DISCOVERY_MODE_ID,
       "Discovery Mode",
       "Conversational problem exploration through Socratic questioning",
       "1.0.0-stub",
@@ -53,6 +58,9 @@ export class DiscoveryMode extends AbstractMode {
       fileOps,
       logger,
     );
+
+    // Initialize prompt manager
+    this.promptManager = new PromptManager(DISCOVERY_MODE_ID, fileOps, logger);
   }
 
   protected initializePrompts(): void {
@@ -70,9 +78,27 @@ export class DiscoveryMode extends AbstractMode {
   protected async doInitialize(): Promise<void> {
     this.logger.info("AI: Initializing Discovery Mode stub");
 
+    // Load prompt templates (non-fatal if missing)
+    try {
+      await this.promptManager.loadTemplates();
+    } catch (error) {
+      this.logger.debug(`AI: No prompt templates found, using defaults: ${error}`);
+    }
+
+    // Migrate any existing prompts to the prompt manager
+    for (const [key, value] of this.prompts.entries()) {
+      if (!this.promptManager.getTemplate(key)) {
+        this.promptManager.setTemplate({
+          id: createTemplateId(key),
+          template: value,
+          format: "text",
+        });
+      }
+    }
+
     // Initialize discovery state with schema version
     const initialState: DiscoveryState = {
-      id: `${this.id}-${Date.now()}`,
+      id: DiscoveryMode.DEFAULT_STATE_ID,
       modeId: this.id,
       timestamp: new Date(),
       schemaVersion: this.version,
@@ -99,8 +125,9 @@ export class DiscoveryMode extends AbstractMode {
     _context?: Record<string, unknown>,
   ): Promise<ModeResult<T>> {
     try {
-      const loadedState = await this.loadState();
+      const loadedState = await this.loadState(DiscoveryMode.DEFAULT_STATE_ID);
       if (!loadedState) {
+        this.logger.error("AI: Failed to load state in Discovery Mode execute");
         throw new Error("No state found - mode not properly initialized");
       }
 
@@ -118,9 +145,12 @@ export class DiscoveryMode extends AbstractMode {
         return await this.completeDiscovery(state) as ModeResult<T>;
       }
 
-      // Ask next question
+      // Ask next question using prompt manager
       const currentQuestion = this.questions[state.currentQuestionIndex];
-      const response = this.formatQuestion(currentQuestion, state.currentQuestionIndex);
+      const response = this.formatQuestionWithPromptManager(
+        currentQuestion,
+        state.currentQuestionIndex,
+      );
 
       // Advance to next question
       state.currentQuestionIndex++;
@@ -141,7 +171,7 @@ export class DiscoveryMode extends AbstractMode {
 
   protected async doValidate(): Promise<ModeResult<boolean>> {
     try {
-      const loadedState = await this.loadState();
+      const loadedState = await this.loadState(DiscoveryMode.DEFAULT_STATE_ID);
       if (!loadedState) {
         return {
           success: false,
@@ -192,6 +222,63 @@ export class DiscoveryMode extends AbstractMode {
   }
 
   /**
+   * Format a question using the prompt manager
+   */
+  private formatQuestionWithPromptManager(question: string, index: number): string {
+    try {
+      // Try to use prompt manager templates
+      if (index === 0) {
+        // First question includes welcome
+        const welcome = this.promptManager.getTemplate("welcome")
+          ? this.promptManager.renderTemplate("welcome", {
+            objective: "your challenge",
+          })
+          : this.prompts.get("welcome") || "";
+
+        const questionTemplate = this.promptManager.getTemplate(`question_${index + 1}_problem`);
+        if (questionTemplate) {
+          const prefix = this.promptManager.renderTemplate("question_prefix", {});
+          return welcome + "\n\n" + this.promptManager.renderTemplate(
+            `question_${index + 1}_problem`,
+            { prefix },
+          );
+        }
+
+        return welcome + "\n\n" + this.formatQuestion(question, index);
+      } else {
+        // Try to use specific question template
+        const questionTemplateId = this.getQuestionTemplateId(index);
+        const questionTemplate = this.promptManager.getTemplate(questionTemplateId);
+
+        if (questionTemplate) {
+          const prefix = this.promptManager.renderTemplate("question_prefix", {});
+          return this.promptManager.renderTemplate(questionTemplateId, { prefix });
+        }
+      }
+    } catch (error) {
+      this.logger.warn(`AI: Failed to use prompt manager for question ${index}:`, error);
+    }
+
+    // Fallback to original formatting
+    return this.formatQuestion(question, index);
+  }
+
+  /**
+   * Get the template ID for a specific question index
+   */
+  private getQuestionTemplateId(index: number): string {
+    const questionTypes = [
+      "problem",
+      "stakeholders",
+      "pain_point",
+      "success",
+      "constraints",
+    ];
+
+    return `question_${index + 1}_${questionTypes[index] || "default"}`;
+  }
+
+  /**
    * Generate insight from user response
    */
   private generateInsight(response: string, state: DiscoveryState): void {
@@ -230,7 +317,7 @@ export class DiscoveryMode extends AbstractMode {
    * Complete the discovery process and return summary
    */
   private async completeDiscovery(state: DiscoveryState): Promise<ModeResult<string>> {
-    const summary = this.buildDiscoverySummary(state);
+    const summary = this.buildDiscoverySummaryWithPromptManager(state);
 
     // Update state with completion
     state.data = {
@@ -263,11 +350,79 @@ Artifact generation: ✅ Project document will be created`;
   }
 
   /**
+   * Build summary using prompt manager with response formatting
+   */
+  private buildDiscoverySummaryWithPromptManager(state: DiscoveryState): string {
+    try {
+      // Format insights using templates
+      const formattedInsights = state.insights
+        .map((insight) => {
+          if (this.promptManager.getTemplate("insight_item")) {
+            return this.promptManager.renderTemplate("insight_item", { insight });
+          }
+          return `• ${insight}`;
+        })
+        .join("\n");
+
+      // Build summary with templates
+      let summary: string;
+      if (this.promptManager.getTemplate("insight_summary")) {
+        summary = this.promptManager.renderTemplate("insight_summary", {
+          insights: formattedInsights,
+          next_steps: "Discovery session complete!",
+        });
+      } else {
+        summary = `${this.prompts.get("insight_summary")}\n\n${formattedInsights}`;
+      }
+
+      // Add completion message
+      if (this.promptManager.getTemplate("completion_message")) {
+        const validationStatus = this.promptManager.getTemplate("validation_status")
+          ? this.promptManager.renderTemplate("validation_status", {})
+          : "Framework validation complete";
+
+        const completionMessage = this.promptManager.renderTemplate("completion_message", {
+          summary: "",
+          validation_status: validationStatus,
+        });
+
+        return summary + "\n\n" + completionMessage;
+      }
+
+      // Apply response formatting
+      const responseFormat: ResponseFormat = {
+        type: "markdown",
+        template: "{content}",
+      };
+
+      return this.promptManager.formatResponse(
+        summary + "\n\n" + this.getDefaultCompletionMessage(),
+        responseFormat,
+      ) as string;
+    } catch (error) {
+      this.logger.warn("AI: Failed to use prompt manager for summary:", error);
+      // Fallback to original formatting
+      return this.buildDiscoverySummary(state);
+    }
+  }
+
+  /**
+   * Get default completion message
+   */
+  private getDefaultCompletionMessage(): string {
+    return `Discovery session complete! You can now transition to Planning Mode to map out your path forward, or continue exploring specific aspects of the problem space.
+
+Framework validation: ✅ Mode lifecycle completed successfully
+State management: ✅ Conversation history preserved
+Artifact generation: ✅ Project document will be created`;
+  }
+
+  /**
    * Generate project.md artifact for framework validation
    */
   private async generateProjectArtifact(): Promise<void> {
     try {
-      const loadedState = await this.loadState();
+      const loadedState = await this.loadState(DiscoveryMode.DEFAULT_STATE_ID);
       if (!loadedState) {
         this.logger.warn("AI: No state found for artifact generation");
         return;

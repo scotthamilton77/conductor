@@ -13,6 +13,7 @@ import {
   type ModeState,
   type StateValidationResult,
 } from "../src/lib/types.ts";
+import { createModeId, createStateId, type StateId } from "../src/lib/type-utils.ts";
 
 // Mock Logger implementation
 class MockLogger implements Logger {
@@ -58,7 +59,7 @@ class TestEnhancedMode extends AbstractMode {
 
   constructor(fileOps: FileOperations, logger: Logger) {
     super(
-      "test-enhanced",
+      createModeId("test-enhanced"),
       "Test Enhanced Mode",
       "Test mode for enhanced state management",
       "2.0.0",
@@ -91,7 +92,7 @@ class TestEnhancedMode extends AbstractMode {
 
   protected override doValidateState(state: ModeState): Promise<StateValidationResult> {
     // For compression and backup tests, always return valid
-    if (state.id === "large-state" || state.id === "backup-test") {
+    if (state.id === createStateId("large-state") || state.id === createStateId("backup-test")) {
       return Promise.resolve({
         isValid: true,
         errors: [],
@@ -154,7 +155,7 @@ Deno.test("Enhanced State Management - State validation with checksum", async ()
 
     // Save state with checksum
     const testState: Partial<ModeState> = {
-      id: "test-checksum",
+      id: createStateId("test-checksum"),
       data: { key: "value", count: 42 },
       artifacts: ["artifact1"],
     };
@@ -162,7 +163,7 @@ Deno.test("Enhanced State Management - State validation with checksum", async ()
     await mode.saveState(testState);
 
     // Load state and verify checksum validation works
-    const loadedState = await mode.loadState("test-checksum");
+    const loadedState = await mode.loadState(createStateId("test-checksum"));
 
     assertEquals(loadedState?.id, "test-checksum");
     assertEquals(loadedState?.checksum !== undefined, true);
@@ -190,8 +191,8 @@ Deno.test("Enhanced State Management - State migration", async () => {
 
     // Create legacy state (without schema version)
     const legacyState: ModeState = {
-      id: "legacy-state",
-      modeId: "test-enhanced",
+      id: createStateId("legacy-state"),
+      modeId: createModeId("test-enhanced"),
       timestamp: new Date(),
       data: { legacy: true },
       artifacts: [],
@@ -203,7 +204,7 @@ Deno.test("Enhanced State Management - State migration", async () => {
     await fileOps.writeFile(statePath, JSON.stringify(legacyState, null, 2));
 
     // Load state should trigger migration
-    const migratedState = await mode.loadState("legacy-state");
+    const migratedState = await mode.loadState(createStateId("legacy-state"));
 
     assertEquals(migratedState !== null, true);
     assertEquals(migratedState?.data.migrated, true);
@@ -230,7 +231,7 @@ Deno.test("Enhanced State Management - State compression for large data", async 
     }
 
     const testState: Partial<ModeState> = {
-      id: "large-state",
+      id: createStateId("large-state"),
       data: largeData,
       artifacts: [],
     };
@@ -238,7 +239,7 @@ Deno.test("Enhanced State Management - State compression for large data", async 
     await mode.saveState(testState);
 
     // Load state and verify it was compressed and decompressed correctly
-    const loadedState = await mode.loadState("large-state");
+    const loadedState = await mode.loadState(createStateId("large-state"));
 
     assertEquals(loadedState !== null, true);
     assertEquals(loadedState?.id, "large-state");
@@ -257,7 +258,7 @@ Deno.test("Enhanced State Management - Error recovery with backup", async () => 
 
     // Save initial state
     const initialState: Partial<ModeState> = {
-      id: "backup-test",
+      id: createStateId("backup-test"),
       data: { version: 1 },
       artifacts: [],
     };
@@ -266,7 +267,7 @@ Deno.test("Enhanced State Management - Error recovery with backup", async () => 
 
     // Save updated state (this should create a backup)
     const updatedState: Partial<ModeState> = {
-      id: "backup-test",
+      id: createStateId("backup-test"),
       data: { version: 2 },
       artifacts: [],
     };
@@ -279,7 +280,7 @@ Deno.test("Enhanced State Management - Error recovery with backup", async () => 
     await fileOps.writeFile(statePath, "corrupted json content");
 
     // Load should recover from backup
-    const recoveredState = await mode.loadState("backup-test");
+    const recoveredState = await mode.loadState(createStateId("backup-test"));
 
     // Should recover the initial state from backup
     assertEquals(recoveredState !== null, true);
@@ -295,10 +296,11 @@ Deno.test("Enhanced State Management - State validation errors", async () => {
   try {
     await mode.initialize();
 
-    // Create invalid state
+    // Create invalid state - we'll test this differently since createStateId validates
+    // We need to bypass the validation to test the state validation logic
     const invalidState: ModeState = {
-      id: "", // Invalid empty ID
-      modeId: "wrong-mode", // Wrong mode ID
+      id: "" as unknown as StateId, // Invalid empty ID - bypass validation for testing
+      modeId: createModeId("wrong-mode"), // Wrong mode ID
       timestamp: new Date(),
       data: {},
       artifacts: [],
@@ -324,7 +326,7 @@ Deno.test("Enhanced State Management - Save retry on failure", async () => {
 
     // Create a state that will trigger save attempts
     const testState: Partial<ModeState> = {
-      id: "retry-test",
+      id: createStateId("retry-test"),
       data: { test: "retry mechanism" },
       artifacts: [],
     };
@@ -332,7 +334,7 @@ Deno.test("Enhanced State Management - Save retry on failure", async () => {
     // This should succeed despite any transient issues
     await mode.saveState(testState);
 
-    const loadedState = await mode.loadState("retry-test");
+    const loadedState = await mode.loadState(createStateId("retry-test"));
     assertEquals(loadedState?.data.test, "retry mechanism");
   } finally {
     await cleanup();
@@ -354,8 +356,8 @@ Deno.test("Enhanced State Management - Custom mode validation integration", asyn
     };
 
     const testState: ModeState = {
-      id: "custom-validation-test",
-      modeId: "test-enhanced",
+      id: createStateId("custom-validation-test"),
+      modeId: createModeId("test-enhanced"),
       timestamp: new Date(),
       data: { test: true },
       artifacts: [],

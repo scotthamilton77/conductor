@@ -8,6 +8,7 @@
 import { AbstractMode } from "../modes/abstract-mode.ts";
 import { FileOperations } from "./file-operations.ts";
 import { type Logger, type Mode, type ModeConfig, type ModeResult } from "./types.ts";
+import { type ModeId, createModeId } from "./type-utils.ts";
 
 /**
  * Registry entry for a mode with metadata and configuration
@@ -15,11 +16,11 @@ import { type Logger, type Mode, type ModeConfig, type ModeResult } from "./type
 export interface ModeRegistryEntry {
   /** Constructor function for the mode class */
   modeClass: new (
-    id: string,
+    id: ModeId,
     name: string,
     description: string,
     version: string,
-    dependencies: string[],
+    dependencies: ModeId[],
     fileOps: FileOperations,
     logger: Logger,
     initialConfig?: Partial<ModeConfig>,
@@ -245,7 +246,7 @@ export class ModeRegistry {
 
       // Create new instance
       const instance = new entry.modeClass(
-        name,
+        createModeId(name),
         name, // Use name as display name by default
         entry.config.description || `${name} mode`,
         entry.config.version,

@@ -6,6 +6,7 @@ import { assertEquals, assertRejects, assertThrows } from "@std/assert";
 import { AbstractMode } from "../src/modes/abstract-mode.ts";
 import { FileOperations } from "../src/lib/file-operations.ts";
 import { type Logger, type ModeResult, type ModeState } from "../src/lib/types.ts";
+import { createModeId, createStateId } from "../src/lib/type-utils.ts";
 
 // Mock Logger implementation
 class MockLogger implements Logger {
@@ -104,7 +105,7 @@ async function createTestMode(): Promise<{
 
   const logger = new MockLogger();
   const mode = new TestMode(
-    "test-mode",
+    createModeId("test-mode"),
     "Test Mode",
     "A test mode for unit testing",
     "1.0.0",
@@ -246,7 +247,7 @@ Deno.test("AbstractMode - State Management", async () => {
 
     // Save state
     const testState: Partial<ModeState> = {
-      id: "test-state",
+      id: createStateId(createStateId("test-state")),
       data: { key: "value", count: 42 },
       artifacts: ["artifact1", "artifact2"],
     };
@@ -254,7 +255,7 @@ Deno.test("AbstractMode - State Management", async () => {
     await mode.saveState(testState);
 
     // Load state
-    const loadedState = await mode.loadState("test-state");
+    const loadedState = await mode.loadState(createStateId("test-state"));
 
     assertEquals(loadedState?.id, "test-state");
     assertEquals(loadedState?.modeId, "test-mode");
@@ -267,8 +268,8 @@ Deno.test("AbstractMode - State Management", async () => {
     assertEquals(recentState?.id, "test-state");
 
     // Clear specific state
-    await mode.clearState("test-state");
-    const clearedState = await mode.loadState("test-state");
+    await mode.clearState(createStateId("test-state"));
+    const clearedState = await mode.loadState(createStateId("test-state"));
     assertEquals(clearedState, null);
   } finally {
     await cleanup();
@@ -384,7 +385,7 @@ Deno.test("AbstractMode - Lifecycle Hooks", async () => {
     }
 
     const mode = new HookedTestMode(
-      "hooked-test",
+      createModeId("hooked-test"),
       "Hooked Test Mode",
       "Test mode with hooks",
       "1.0.0",
@@ -439,11 +440,11 @@ Deno.test("AbstractMode - Dependencies validation", async () => {
   try {
     // Create mode with dependencies
     const mode = new TestMode(
-      "dependent-mode",
+      createModeId("dependent-mode"),
       "Dependent Mode",
       "Mode with dependencies",
       "1.0.0",
-      ["dep1", "dep2"],
+      [createModeId("dep1"), createModeId("dep2")],
       fileOps,
       logger,
     );

@@ -2,6 +2,8 @@
  * Core Type Definitions
  */
 
+import type { ModeId, StateId } from "./type-utils.ts";
+
 export interface Config {
   version: string;
   defaultMode: string;
@@ -53,10 +55,11 @@ export interface Logger {
  * Mode configuration for advanced mode capabilities
  */
 export interface ModeConfig {
+  id?: ModeId;
   version: string;
   enabled: boolean;
   description?: string;
-  dependencies?: string[];
+  dependencies?: ModeId[];
   settings?: Record<string, unknown>;
 }
 
@@ -64,8 +67,8 @@ export interface ModeConfig {
  * Mode state management interface for context preservation
  */
 export interface ModeState {
-  id: string;
-  modeId: string;
+  id: StateId;
+  modeId: ModeId;
   timestamp: Date;
   data: Record<string, unknown>;
   artifacts: string[];
@@ -117,11 +120,11 @@ export interface ModeResult<T = unknown> {
  * Core Mode interface with enhanced capabilities
  */
 export interface Mode {
-  readonly id: string;
+  readonly id: ModeId;
   readonly name: string;
   readonly description: string;
   readonly version: string;
-  readonly dependencies: string[];
+  readonly dependencies: ModeId[];
 
   // Basic lifecycle methods
   initialize(): Promise<void>;
@@ -136,8 +139,8 @@ export interface Mode {
 
   // State management
   saveState(state: Partial<ModeState>): Promise<void>;
-  loadState(stateId?: string): Promise<ModeState | null>;
-  clearState(stateId?: string): Promise<void>;
+  loadState(stateId?: StateId): Promise<ModeState | null>;
+  clearState(stateId?: StateId): Promise<void>;
 
   // Enhanced state management
   validateState(state: ModeState): Promise<StateValidationResult>;

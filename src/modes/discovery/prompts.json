@@ -1,0 +1,81 @@
+{
+  "version": "1.0.0",
+  "modeId": "discovery",
+  "templates": [
+    {
+      "id": "welcome",
+      "template": "Welcome to Discovery Mode! I'll help you explore and understand your problem space through conversation.\n\nOur goal is to deeply understand {{objective}} through thoughtful questions and active listening.",
+      "description": "Initial welcome message for Discovery Mode",
+      "variables": ["objective"],
+      "format": "markdown"
+    },
+    {
+      "id": "question_prefix",
+      "template": "Let's explore this together:",
+      "description": "Prefix for each discovery question",
+      "format": "text"
+    },
+    {
+      "id": "question_1_problem",
+      "template": "{{prefix}} What problem are you trying to solve? Take your time to describe it in detail - I'm here to understand.",
+      "description": "First discovery question about the core problem",
+      "variables": ["prefix"],
+      "format": "text"
+    },
+    {
+      "id": "question_2_stakeholders",
+      "template": "{{prefix}} Who experiences this problem most frequently? Tell me about the people affected and how it impacts them.",
+      "description": "Question about stakeholders and impact",
+      "variables": ["prefix"],
+      "format": "text"
+    },
+    {
+      "id": "question_3_pain_point",
+      "template": "{{prefix}} Tell me about a recent time this was particularly frustrating. What happened, and why did it matter?",
+      "description": "Question to explore specific pain points",
+      "variables": ["prefix"],
+      "format": "text"
+    },
+    {
+      "id": "question_4_success",
+      "template": "{{prefix}} What would success look like if this problem were solved? Paint me a picture of the ideal outcome.",
+      "description": "Question about success criteria and vision",
+      "variables": ["prefix"],
+      "format": "text"
+    },
+    {
+      "id": "question_5_constraints",
+      "template": "{{prefix}} What constraints or limitations should we keep in mind? This could be technical, organizational, or resource-related.",
+      "description": "Question about constraints and boundaries",
+      "variables": ["prefix"],
+      "format": "text"
+    },
+    {
+      "id": "insight_summary",
+      "template": "Based on our conversation, here are the key insights I've gathered:\n\n{{insights}}\n\n{{next_steps}}",
+      "description": "Template for summarizing insights",
+      "variables": ["insights", "next_steps"],
+      "format": "markdown"
+    },
+    {
+      "id": "insight_item",
+      "template": "• {{insight}}",
+      "description": "Template for individual insight items",
+      "variables": ["insight"],
+      "format": "text"
+    },
+    {
+      "id": "completion_message",
+      "template": "Discovery session complete! {{summary}}\n\nYou can now transition to Planning Mode to map out your path forward, or continue exploring specific aspects of the problem space.\n\n{{validation_status}}",
+      "description": "Session completion message",
+      "variables": ["summary", "validation_status"],
+      "format": "markdown"
+    },
+    {
+      "id": "validation_status",
+      "template": "Framework validation: ✅ Mode lifecycle completed successfully\nState management: ✅ Conversation history preserved\nArtifact generation: ✅ Project document will be created",
+      "description": "Framework validation status message",
+      "format": "text"
+    }
+  ]
+}
