@@ -150,7 +150,7 @@
         "id": 4,
         "title": "Develop Mode-Based Framework Foundation",
         "description": "Create the core mode system foundation with basic Mode class architecture for Phase 1 implementation",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [
           3
         ],
@@ -227,7 +227,7 @@
             "id": 7,
             "title": "Create Mode-Specific Prompt Management System",
             "description": "Implement prompt templates and management for mode-specific AI interactions",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               2
             ],
@@ -242,7 +242,8 @@
         "description": "Build the Discovery mode with conversational problem exploration, vision building, and artifact generation - Phase 1 focus on CLI-based implementation with simple AI interaction",
         "status": "pending",
         "dependencies": [
-          4
+          4,
+          15
         ],
         "priority": "high",
         "details": "Create Discovery mode class extending base Mode, implement conversation flow management using Claude API for problem exploration, build progressive understanding algorithms that ask follow-up questions based on user responses, create CLI-based interface for discovery conversations with clear prompts and feedback display, implement problem-first conversation patterns with predefined question templates, design concrete example gathering workflows through interactive prompts, build success vision definition capabilities, create constraints and boundary identification features, implement insight capture and synthesis, create project.md generation with real-time updates during discovery process, design exit criteria validation with clear transition points to planning mode, and integrate with file-based state management system for preserving discoveries.",
@@ -328,11 +329,25 @@
         ],
         "priority": "low",
         "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Design Conversational Engine Architecture for Mode System",
+        "description": "Define the comprehensive conversational AI architecture that enables LLM integration across all modes, including prompt management, conversation state handling, and provider abstraction.",
+        "details": "Create ConversationalEngine class that serves as the central abstraction layer for LLM interactions across all modes. Design LLMProvider interface with implementations for Claude, OpenAI, and other providers, including authentication, rate limiting, and failover mechanisms. Implement PromptManager that handles both static templates (stored in .conductor/modes/{mode}/prompts/) and dynamic prompt generation based on conversation context and mode requirements. Build ConversationStateManager that maintains conversation history, context windows, token usage tracking, and state persistence across sessions. Design mode-specific conversation patterns: Discovery mode uses Socratic questioning with follow-up generation, Analysis mode uses structured technical queries, and Planning mode uses goal-oriented conversation flows. Create StreamingHandler for real-time response processing with proper error handling and timeout management. Implement TokenManager for usage tracking, cost estimation, and context window optimization. Build ConversationMemory system that preserves relevant context between sessions while managing memory efficiently. Design error handling strategy for API failures, timeout scenarios, and invalid responses. Create configuration system for model selection, temperature settings, and mode-specific AI behavior customization. Implement conversation logging and audit trail for debugging and analysis. Build foundation for multi-turn conversations with context preservation and relevance scoring.",
+        "testStrategy": "Test LLMProvider interface with multiple providers including authentication and failover scenarios. Verify PromptManager correctly loads static templates and generates dynamic prompts based on mode context. Test ConversationStateManager preserves state across sessions and handles context window limits properly. Validate mode-specific conversation patterns generate appropriate responses for Discovery, Analysis, and Planning scenarios. Test StreamingHandler manages real-time responses with proper error recovery. Verify TokenManager accurately tracks usage and estimates costs across different providers. Test ConversationMemory efficiently preserves relevant context while managing memory limits. Validate error handling for various failure scenarios including network issues, API errors, and timeout conditions. Test configuration system allows proper customization of AI behavior per mode. Verify conversation logging captures sufficient detail for debugging without compromising performance.",
+        "status": "pending",
+        "dependencies": [
+          3,
+          4
+        ],
+        "priority": "medium",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-06-29T15:24:43.165Z",
-      "updated": "2025-06-29T21:41:10.235Z",
+      "updated": "2025-07-01T11:23:36.407Z",
       "description": "Phase 1: Foundation + Discovery Mode - Minimal viable CLI with basic mode system (no agent integration)"
     }
   },
