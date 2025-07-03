@@ -239,15 +239,19 @@
       {
         "id": 5,
         "title": "Implement Discovery Mode",
-        "description": "Build the Discovery mode with conversational problem exploration, vision building, and artifact generation - Phase 1 focus on CLI-based implementation with simple AI interaction",
+        "description": "Build the Discovery mode with conversational problem exploration, vision building, and artifact generation - Phase 1 focus on CLI-based implementation with simple AI interaction, built on top of the multi-interface architecture foundation",
         "status": "pending",
         "dependencies": [
           4,
-          15
+          15,
+          16,
+          17,
+          18,
+          19
         ],
         "priority": "high",
-        "details": "Create Discovery mode class extending base Mode, implement conversation flow management using Claude API for problem exploration, build progressive understanding algorithms that ask follow-up questions based on user responses, create CLI-based interface for discovery conversations with clear prompts and feedback display, implement problem-first conversation patterns with predefined question templates, design concrete example gathering workflows through interactive prompts, build success vision definition capabilities, create constraints and boundary identification features, implement insight capture and synthesis, create project.md generation with real-time updates during discovery process, design exit criteria validation with clear transition points to planning mode, and integrate with file-based state management system for preserving discoveries.",
-        "testStrategy": "Test conversation flow logic with Claude API, validate project.md generation functionality, test exit criteria evaluation and problem space validation, verify CLI display of discovery insights, test question generation quality and conversation patterns, and test integration with file-based state management for insight persistence",
+        "details": "Create Discovery mode class extending base Mode with multi-interface support, implement conversation flow management using Claude API for problem exploration across CLI, agent-driven, and UI orchestrated interactions, build progressive understanding algorithms that ask follow-up questions based on user responses, create CLI-based interface for discovery conversations with clear prompts and feedback display, implement problem-first conversation patterns with predefined question templates, design concrete example gathering workflows through interactive prompts, build success vision definition capabilities, create constraints and boundary identification features, implement insight capture and synthesis, create project.md generation with real-time updates during discovery process, design exit criteria validation with clear transition points to planning mode, and integrate with file-based state management system for preserving discoveries. Implementation must leverage the multi-interface architecture foundation to ensure consistent behavior across all interaction modes.",
+        "testStrategy": "Test conversation flow logic with Claude API across different interface modes, validate project.md generation functionality, test exit criteria evaluation and problem space validation, verify CLI display of discovery insights, test question generation quality and conversation patterns, test integration with file-based state management for insight persistence, and verify multi-interface architecture compatibility and consistent behavior across CLI, agent-driven, and UI orchestrated modes",
         "subtasks": []
       },
       {
@@ -343,11 +347,167 @@
         ],
         "priority": "medium",
         "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Foundation Phase: Design and implement InteractionPort interface and Message type",
+        "description": "Create the foundation for supporting CLI, agent-driven (Claude Code MCP), and UI orchestrated interaction paradigms through comprehensive type definitions and interface abstraction.",
+        "details": "Design and implement InteractionPort interface as the primary abstraction for all I/O channels, supporting send() method for outbound messages, onUserMessage() for inbound message handling, and streaming support for real-time interactions. Create comprehensive Message type with role (system, user, assistant), content (string or structured data), timestamp (ISO 8601), and metadata (extensible key-value pairs for channel-specific data). Implement CLI-based InteractionPort implementation as the reference implementation for Phase 1, with proper message formatting and display. Design the interface to accommodate future implementations for MCP agent interactions and UI orchestration without breaking changes. Include proper TypeScript generics for extensibility and comprehensive error handling for message transmission failures. Ensure the abstraction supports both synchronous and asynchronous message patterns. Create message validation utilities to ensure type safety across all interaction channels. Design metadata schema to support channel-specific requirements like MCP tool responses, UI component states, and CLI formatting options.",
+        "testStrategy": "Test InteractionPort interface with CLI implementation including message sending, receiving, and streaming scenarios. Verify Message type validation with various content types and metadata combinations. Test async message handling patterns and error scenarios. Validate type safety across different interaction channels. Test message formatting and display in CLI context. Verify extensibility by implementing mock MCP and UI InteractionPort implementations. Test metadata handling for channel-specific requirements and ensure proper serialization/deserialization.",
+        "status": "pending",
+        "dependencies": [
+          3,
+          4
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Foundation Phase: Implement CliPort adapter to maintain current CLI behavior while using the new InteractionPort interface",
+        "description": "Create a CLI-specific adapter that implements the InteractionPort interface to bridge existing CLI interactions with the new message-based system while preserving backward compatibility.",
+        "details": "Implement CliPort class that extends/implements InteractionPort interface from Task 16, providing concrete CLI-specific implementations for send() method (routing messages to stdout with proper formatting), onUserMessage() handler (reading from stdin and converting to Message format), and streaming support for real-time CLI interactions. Create MessageFormatter utility to handle markdown rendering and ANSI color codes for terminal output, ensuring messages are properly formatted for CLI display. Implement stdin/stdout adapters that convert raw CLI input/output to structured Message objects with appropriate role assignments (user input becomes user role, system output becomes assistant role). Add backward compatibility layer that maintains existing CLI command behavior while routing through the new InteractionPort system. Include proper error handling for CLI-specific scenarios like broken pipes, terminal resize events, and interrupt signals. Implement CLI-specific metadata handling in Message objects to track terminal capabilities, color support, and formatting preferences. Create integration points with existing CLI framework (cliffy) to ensure seamless operation with current command structure.",
+        "testStrategy": "Test CliPort implementation with various message types including text, structured data, and streaming scenarios. Verify markdown rendering produces correctly formatted terminal output with ANSI codes. Test stdin/stdout conversion creates proper Message objects with correct roles and metadata. Validate backward compatibility by running existing CLI commands through the new system. Test error handling scenarios including broken pipes, terminal interrupts, and malformed input. Verify integration with cliffy command framework maintains existing command behavior. Test CLI-specific metadata handling preserves terminal capabilities and formatting preferences across message exchanges.",
+        "status": "pending",
+        "dependencies": [
+          16,
+          4,
+          11
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Foundation Phase: Update AbstractMode.execute() signature to use Message input and InteractionPort, while maintaining backward compatibility",
+        "description": "Refactor AbstractMode.execute() to accept Message input and use InteractionPort for output, change ModeResult to return Message[] instead of string, and add setInteractionPort() method for dependency injection while preserving existing functionality.",
+        "details": "Update AbstractMode.execute() signature from execute(input: string): Promise<ModeResult<string>> to execute(input: Message): Promise<ModeResult<Message[]>>, ensuring backward compatibility through method overloading or wrapper functions. Implement setInteractionPort(port: InteractionPort) method in AbstractMode for dependency injection pattern, allowing modes to receive their communication interface at runtime. Refactor ModeResult<T> generic type to specifically handle Message[] output format, updating all return statements throughout the mode system. Create compatibility layer that converts string inputs to Message objects and Message[] outputs back to strings when needed for existing CLI usage. Update all concrete mode implementations (Discovery mode) to handle new Message-based input/output while maintaining existing behavior. Ensure proper error handling and type safety throughout the signature changes. Add comprehensive JSDoc documentation explaining the new signature and backward compatibility approach.",
+        "testStrategy": "Test AbstractMode.execute() with both old string inputs (via compatibility layer) and new Message inputs to verify backward compatibility. Verify setInteractionPort() correctly injects InteractionPort instances and modes can access them during execution. Test ModeResult<Message[]> handles various message types and properly serializes/deserializes message arrays. Validate existing Discovery mode functionality remains unchanged when using new signatures. Test error scenarios including missing InteractionPort injection and invalid Message inputs. Verify type safety with TypeScript compiler and runtime type checking.",
+        "status": "pending",
+        "dependencies": [
+          16,
+          17,
+          4
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "Foundation Phase: Implement CommandRequest abstraction to decouple command parsing from execution",
+        "description": "Create structured command DTO with name, args, options, and raw fields. Update ModeCommandRouter to accept CommandRequest instead of raw strings.",
+        "details": "Design and implement CommandRequest interface as a structured data transfer object containing: name (string) for command identifier, args (string[]) for positional arguments, options (Record<string, string | boolean>) for named parameters, and raw (string) for original unparsed input. Create CommandRequestBuilder class that parses raw command strings into CommandRequest objects, handling argument tokenization, option parsing (--key=value, --flag), and validation. Implement CommandRequestValidator to ensure required arguments are present and option types are correct. Update ModeCommandRouter.route() signature from route(rawCommand: string) to route(request: CommandRequest), enabling type-safe command handling. Create CommandRequestParser utility that handles shell-style argument parsing with proper quoting and escaping. Implement error handling for malformed commands with descriptive error messages. Update existing command handlers to accept CommandRequest objects and extract typed parameters. Add support for command aliases and help text generation from CommandRequest structure. Ensure backward compatibility by maintaining raw string access when needed.",
+        "testStrategy": "Test CommandRequest creation with various command formats including simple commands ('init'), commands with arguments ('discover problem'), and commands with options ('status --verbose'). Verify CommandRequestBuilder correctly parses shell-style arguments with quotes and escaping. Test CommandRequestValidator with valid and invalid command structures. Verify ModeCommandRouter.route() correctly processes CommandRequest objects and routes to appropriate handlers. Test error handling with malformed commands and missing required arguments. Validate backward compatibility by ensuring raw command access still works. Test command alias resolution and help text generation. Verify type safety improvements in command handler implementations.",
+        "status": "pending",
+        "dependencies": [
+          11,
+          4
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "Implement AgentPort adapter for Claude Code MCP integration",
+        "description": "Create AgentPort adapter that implements InteractionPort interface for Claude Code MCP integration, enabling AI agents to interact with modes programmatically through structured message exchange.",
+        "details": "Implement AgentPort class that extends InteractionPort interface to handle Claude Code MCP protocol communication. Create MCP message protocol handlers for request/response patterns including tool calls, structured responses, and session state management. Implement CommandSynthesizer that converts agent intents into proper CommandRequest objects for mode execution. Build StructuredResponseFormatter that packages mode outputs into MCP-compliant responses with proper metadata and error handling. Create AgentSessionManager to handle concurrent agent sessions, session isolation, and cleanup. Implement message validation and security controls to ensure agent requests are properly authenticated and authorized. Add support for streaming responses and real-time agent interactions. Create AgentCapabilityRegistry that exposes available modes and their capabilities to MCP clients. Implement proper error propagation and agent-friendly error messages. Design agent command synthesis patterns that allow natural language agent requests to be converted into structured mode commands.",
+        "testStrategy": "Test AgentPort implementation with mock MCP client connections including bidirectional message exchange and session management. Verify CommandSynthesizer correctly converts various agent intents into valid CommandRequest objects. Test StructuredResponseFormatter produces MCP-compliant responses with proper metadata. Validate AgentSessionManager handles multiple concurrent sessions without cross-contamination. Test message validation rejects malformed or unauthorized agent requests. Verify streaming response handling works correctly with agent clients. Test error scenarios including mode failures and invalid agent requests produce appropriate error responses. Validate AgentCapabilityRegistry accurately exposes available modes and their capabilities.",
+        "status": "pending",
+        "dependencies": [
+          16,
+          17,
+          18,
+          19
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 21,
+        "title": "Implement streaming response capabilities for real-time agent and UI interactions",
+        "description": "Implement token-level streaming support for InteractionPort interface, enable progressive response rendering, and implement partial message handling for real-time conversational experiences across CLI, agent, and UI interaction modes.",
+        "details": "Extend InteractionPort interface with streaming capabilities including startStream(), streamToken(), and endStream() methods for token-level streaming support. Implement StreamingMessage type that extends Message with partial content, streaming state (streaming, partial, complete), and token metadata. Create ProgressiveRenderer utility class that handles real-time rendering of partial responses in CLI with proper cursor management and ANSI escape sequences for dynamic content updates. Implement StreamingResponseBuffer that accumulates partial tokens into coherent message chunks while maintaining proper message boundaries. Update CliPort to support streaming output with terminal-specific optimizations including line buffering, cursor positioning, and proper cleanup on interruption. Extend AgentPort streaming capabilities for MCP protocol compliance with proper chunk delimiting and session state management. Build PartialMessageHandler that manages incomplete message assembly, handles streaming interruptions gracefully, and provides proper fallback to complete message delivery when streaming fails. Implement streaming rate limiting and backpressure handling to prevent overwhelming slower rendering targets. Add streaming progress indicators and user interruption handling (Ctrl+C) with proper cleanup and message completion.",
+        "testStrategy": "Test token-level streaming with various message sizes and types across CLI, agent, and UI interaction modes. Verify ProgressiveRenderer correctly updates terminal display with proper ANSI sequence handling and cursor management. Test StreamingResponseBuffer handles partial token assembly and message boundary detection accurately. Validate streaming interruption scenarios including network failures, user cancellation, and graceful degradation to complete message delivery. Test streaming rate limiting prevents overwhelming slower targets and backpressure handling maintains system stability. Verify PartialMessageHandler correctly assembles incomplete messages and handles edge cases like malformed tokens or encoding issues. Test streaming integration with existing InteractionPort implementations maintains backward compatibility.",
+        "status": "pending",
+        "dependencies": [
+          16,
+          17,
+          18,
+          20
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 22,
+        "title": "Implement cross-channel session management and state synchronization",
+        "description": "Create comprehensive session management system that enables seamless transitions between CLI, agent, and UI interaction channels with persistent session state and proper synchronization mechanisms.",
+        "details": "Implement SessionManager class that provides centralized session lifecycle management including session creation, persistence, and retrieval across interaction channels. Create SessionState interface with comprehensive state data including conversation history, mode context, user preferences, and channel-specific metadata. Build SessionPersistence layer using .conductor/sessions/ directory structure with JSON-based session files containing session ID, creation timestamp, last accessed time, active mode, conversation history, and channel transition log. Implement SessionResolver utility that handles session discovery and binding when users switch between CLI, agent, and UI channels using session tokens, user identification, or workspace context. Create CrossChannelSynchronizer that manages real-time state updates when sessions are active across multiple channels simultaneously, including conflict resolution and state merging strategies. Build SessionTransitionManager that handles seamless handoffs between channels, preserving conversation context, mode state, and user progress while updating channel-specific metadata. Implement SessionCleanup service for automatic cleanup of expired sessions and maintenance of session directory structure. Add session validation and corruption recovery mechanisms to handle incomplete transitions or system interruptions.",
+        "testStrategy": "Test session creation and persistence across CLI, agent, and UI channels with various session state configurations. Verify SessionResolver correctly identifies and binds existing sessions when switching channels using different identification methods. Test CrossChannelSynchronizer handles concurrent session access with proper conflict resolution and state merging. Validate SessionTransitionManager preserves all relevant context during channel switches including conversation history and mode state. Test session cleanup functionality with various expiration scenarios and verify proper directory maintenance. Test session recovery mechanisms with corrupted or incomplete session files. Verify session validation detects and handles various corruption scenarios appropriately.",
+        "status": "pending",
+        "dependencies": [
+          16,
+          17,
+          18,
+          20,
+          21
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 23,
+        "title": "Implement UiPort adapter with WebSocket support for rich web interface integration",
+        "description": "Create UiPort adapter that implements InteractionPort interface with WebSocket communication, enabling real-time bidirectional messaging between Conductor modes and web-based user interfaces with rich metadata support.",
+        "details": "Implement UiPort class that extends InteractionPort interface to handle WebSocket-based communication with web UI clients. Create WebSocketServer that manages connection lifecycle including client authentication, connection establishment, heartbeat monitoring, and graceful disconnection handling. Implement MessageProtocol that defines structured message exchange format with rich metadata including message types (text, structured_data, streaming, command, status), UI rendering hints (formatting, styling, component types), session context (mode state, conversation history), and error handling information. Build ConnectionManager that handles multiple concurrent UI connections with session affinity and proper connection pooling. Implement ReconnectionLogic with exponential backoff, connection state persistence, and automatic session restoration upon reconnection. Create MessageQueue for handling offline message buffering and delivery guarantees. Build RichMetadataHandler that packages mode outputs with UI-specific rendering instructions including syntax highlighting hints, interactive element definitions, progress indicators, and visual feedback cues. Implement StreamingSupport for real-time message delivery with proper flow control and backpressure handling. Create WebSocketMessageFormatter that converts Message objects to WebSocket frames with proper serialization and compression. Implement SecurityLayer with connection authentication, message validation, and rate limiting to prevent abuse.",
+        "testStrategy": "Test UiPort implementation with mock WebSocket clients including connection establishment, message exchange, and disconnection scenarios. Verify WebSocketServer handles multiple concurrent connections with proper session management and authentication. Test MessageProtocol with various message types and metadata combinations including text, structured data, and streaming scenarios. Validate ConnectionManager correctly routes messages to appropriate UI sessions and handles connection pooling. Test ReconnectionLogic with network interruption scenarios, verifying automatic reconnection and session restoration. Verify MessageQueue buffers and delivers offline messages correctly upon reconnection. Test RichMetadataHandler generates appropriate UI rendering hints for different content types and modes. Validate StreamingSupport handles real-time message delivery with proper flow control and error handling. Test WebSocketMessageFormatter correctly serializes and compresses messages for efficient transmission. Verify SecurityLayer prevents unauthorized connections and validates message integrity.",
+        "status": "pending",
+        "dependencies": [
+          16,
+          17,
+          18,
+          20,
+          21,
+          22
+        ],
+        "priority": "low",
+        "subtasks": []
+      },
+      {
+        "id": 24,
+        "title": "Enhance Message metadata system for rich UI rendering with structured data support",
+        "description": "Implement comprehensive metadata enhancements to the Message type system to support UI-specific formatting, typed metadata fields, conversation visualization, and dashboard displays with progress indicators.",
+        "details": "Extend the Message type interface with rich metadata capabilities including uiMetadata field containing formatting instructions (markdown, html, styled components), componentType for UI component rendering hints (progress_bar, chart, table, card), and visualizationData for structured chart/graph data. Create TypedMetadataField union type supporting string, number, boolean, object, and array types with validation schemas. Implement ConversationContextMetadata that tracks conversation flow including thread_id, parent_message_id, conversation_phase, and user_intent for UI navigation and context visualization. Design DashboardMetadata interface with progress tracking fields including completion_percentage, status_indicators, milestone_data, and time_estimates for project dashboard displays. Create MetadataEnhancer utility class that automatically enriches messages with appropriate metadata based on content analysis and mode context. Implement MetadataValidator to ensure type safety and schema compliance for all metadata fields. Add MessageRenderer interface with implementations for CLI, web UI, and structured data export formats that consume the enhanced metadata for appropriate display formatting.",
+        "testStrategy": "Test Message type extensions with various metadata combinations including UI formatting, component types, and visualization data to verify type safety and validation. Verify ConversationContextMetadata correctly tracks conversation flow and enables proper thread visualization in UI components. Test DashboardMetadata integration with progress tracking scenarios including project milestones and completion status updates. Validate MetadataEnhancer automatically enriches messages with contextually appropriate metadata across different modes and conversation types. Test MessageRenderer implementations produce correctly formatted output for CLI terminal display, web UI components, and structured data export while consuming enhanced metadata fields.",
+        "status": "pending",
+        "dependencies": [
+          16,
+          17,
+          18
+        ],
+        "priority": "low",
+        "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "UI Integration Phase: Implement real-time collaboration features for multi-user sessions",
+        "description": "Implement comprehensive real-time collaboration system enabling multiple users to participate in shared discovery sessions with concurrent interactions, conflict resolution, and synchronized state management across web UI clients.",
+        "details": "Create CollaborationManager class that orchestrates multi-user sessions with real-time state synchronization across WebSocket connections. Implement SharedSessionState that extends existing SessionState with collaborative features including participant management (user IDs, roles, permissions), concurrent edit tracking (operational transforms for text edits, optimistic UI updates), and conflict resolution algorithms (last-writer-wins with merge conflict detection). Build CollaborativeDiscoveryMode that extends Discovery mode to support multiple participants with turn-taking protocols, shared conversation history, and collaborative artifact creation. Implement WebSocketBroadcaster that manages message distribution to all session participants with proper filtering based on user permissions and session context. Create ConflictResolver utility that handles simultaneous edits to shared artifacts using operational transform algorithms for text conflicts, timestamp-based resolution for metadata conflicts, and user notification systems for irreconcilable conflicts. Build ParticipantManager that handles user authentication, role assignment (facilitator, participant, observer), and permission enforcement for collaborative actions. Implement real-time synchronization of conversation state, mode context, artifact updates, and user presence indicators across all connected clients. Add collaborative features including shared cursor positions, real-time typing indicators, participant status updates, and session activity logging.",
+        "testStrategy": "Test multi-user session creation and participant joining with various user roles and permissions to verify proper authentication and authorization. Verify SharedSessionState correctly synchronizes across multiple WebSocket clients with simulated concurrent edits and state changes. Test ConflictResolver with various conflict scenarios including simultaneous text edits, metadata updates, and artifact modifications to ensure proper resolution algorithms. Validate CollaborativeDiscoveryMode handles multiple participants correctly with turn-taking, shared conversation flow, and collaborative artifact generation. Test WebSocketBroadcaster message distribution with different participant configurations and permission levels. Verify real-time features including cursor synchronization, typing indicators, and presence updates work correctly across multiple connected clients. Test network resilience including connection drops, reconnection scenarios, and state recovery after temporary disconnections.",
+        "status": "pending",
+        "dependencies": [
+          23,
+          22,
+          24,
+          5
+        ],
+        "priority": "low",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-06-29T15:24:43.165Z",
-      "updated": "2025-07-01T11:47:06.678Z",
+      "updated": "2025-07-03T17:20:04.333Z",
       "description": "Phase 1: Foundation + Discovery Mode - Minimal viable CLI with basic mode system (no agent integration)"
     }
   },

@@ -1,29 +1,56 @@
 # Conductor
 
-A conversational AI CLI tool for problem exploration and solution development.
+A mode-based AI CLI tool for structured workflow orchestration. Combines conversational problem exploration with technical analysis using zen tools integration.
 
 ## Quick Start
 
 ```bash
+# Install and run
+deno task build
+./bin/conductor init
+
 # Development
 deno task dev
-
-# Build
-deno task build
-
-# Test
-deno task test
 ```
 
-## Features
+## Core Modes
 
-- **Discovery Mode**: Conversational problem exploration
-- **File-based State**: Git-friendly markdown persistence
-- **Mode-based Architecture**: Extensible framework for different workflows
+- **Discovery**: Socratic problem exploration with zen-powered questioning
+- **Analyze**: Technical codebase analysis using zen tools
+- **Planning**: Structured solution planning with complexity awareness
+- **Build**: Implementation with zen-powered quality gates
+
+## Architecture
+
+**Mode-based Framework**: Extensible workflow orchestration
+- AbstractMode base class with lifecycle management
+- Cross-cutting agents powered by zen tools integration
+- Persistent state with context preservation across modes
+- CLI integration with dynamic command routing
+
+**zen Integration**: 
+- Uses zen tools (thinkdeep, analyze, codereview, secaudit) as analysis engine
+- Fallback agents for environments without zen installation
+- ZenAgentAdapter pattern for tool orchestration
+
+## Key Commands
+
+```bash
+# Development workflow
+deno task quality              # Format + lint + test
+deno task setup-hooks         # Configure git hooks
+
+# Mode operations
+conductor discover [prompt]    # Start problem exploration
+conductor analyze [path]       # Analyze codebase
+conductor status              # Show current state
+```
 
 ## Development
 
-This project uses Deno with TypeScript. See `deno.json` for available tasks and dependencies.
+Built with Deno, TypeScript, and Cliffy. Uses TaskMaster AI for project management.
+
+Configuration in `.conductor/` directory. Design documents in `.conductor/design/`.
 <!-- TASKMASTER_EXPORT_START -->
 > 🎯 **Taskmaster Export** - 2025-06-29 21:17:53 UTC
 > 📋 Export: with subtasks • Status filter: none
