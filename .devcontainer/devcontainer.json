@@ -71,5 +71,5 @@
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
   "workspaceFolder": "/workspace",
   "updateRemoteUserUID": false,
-  "postCreateCommand": "deno cache src/main.ts && task-master --version"
+  "postCreateCommand": "deno cache src/main.ts && task-master --version && /workspace/.devcontainer/scripts/setup-env.sh"
 }
