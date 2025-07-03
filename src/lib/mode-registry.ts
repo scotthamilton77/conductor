@@ -8,7 +8,7 @@
 import { AbstractMode } from "../modes/abstract-mode.ts";
 import { FileOperations } from "./file-operations.ts";
 import { type Logger, type Mode, type ModeConfig, type ModeResult } from "./types.ts";
-import { type ModeId, createModeId } from "./type-utils.ts";
+import { createModeId, type ModeId } from "./type-utils.ts";
 
 /**
  * Registry entry for a mode with metadata and configuration

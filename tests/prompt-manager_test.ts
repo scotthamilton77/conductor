@@ -110,7 +110,10 @@ Deno.test("PromptManager - Variable substitution", async () => {
   });
 
   assertEquals(manager.renderTemplate(createTemplateId("nullable"), { value: null }), "Value: ");
-  assertEquals(manager.renderTemplate(createTemplateId("nullable"), { value: undefined }), "Value: ");
+  assertEquals(
+    manager.renderTemplate(createTemplateId("nullable"), { value: undefined }),
+    "Value: ",
+  );
 
   // Test object values (should JSON stringify)
   const objRendered = manager.renderTemplate(createTemplateId("nullable"), {
