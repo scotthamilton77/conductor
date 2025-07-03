@@ -4,6 +4,8 @@
 
 This document outlines the architecture for the Conductor Mode System - a pluggable framework for different AI-powered workflow modes (discovery, planning, design, build, test, polish, analyze).
 
+**UPDATED**: This architecture now integrates zen tools as the analysis "engine" behind cross-cutting agents. See [zen-integration-architecture.md](./zen-integration-architecture.md) for detailed integration approach.
+
 ## Current State Analysis
 
 ### Existing Infrastructure
@@ -38,10 +40,13 @@ export interface Mode {
 
 ## Core Architecture Components
 
-### 1. Cross-Cutting Agent Architecture
+### 1. Cross-Cutting Agent Architecture (zen-Integrated)
+
+**NOTE**: This interface is now implemented primarily through zen tool adapters. See [zen-integration-architecture.md](./zen-integration-architecture.md) for implementation details.
 
 ```typescript
 // Cross-cutting agents that work across all modes
+// Default implementations delegate to zen tools via ZenAgentAdapter
 export interface CrossCuttingAgent {
   name: string;
   description: string;
@@ -88,36 +93,59 @@ export interface AgentRecommendation {
   rationale: string;
 }
 
-// Specific agent implementations
-export class ComplexityWatchdogAgent implements CrossCuttingAgent {
-  name = "complexity-watchdog";
-  description = "Engineering simplicity and preventing over-engineering";
+// Specific agent implementations (now zen-powered)
+// Actual implementations use ZenAgentAdapter - see zen-integration-architecture.md
+export class ZenComplexityWatchdogAgent implements CrossCuttingAgent {
+  name = "zen-complexity-watchdog";
+  description = "Engineering simplicity using zen analyze, codereview, and refactor tools";
   supportedModes = ["discovery", "planning", "design", "build", "analyze"];
   
+  // Delegates to zen tools: codereview, refactor, analyze
   async evaluateComplexity(solution: any): Promise<ComplexityAnalysis>;
   async detectReinvention(proposal: any): Promise<ReinventionWarning[]>;
   async suggestSimplification(analysis: ComplexityAnalysis): Promise<SimplificationOptions>;
   async validateComplexityJustification(complexity: number, justification: string): Promise<boolean>;
 }
 
-export class SecurityAgent implements CrossCuttingAgent {
-  name = "security";
-  description = "Proactive security integration and threat analysis";
-  supportedModes = ["discovery", "planning", "design", "build", "test", "analyze"];
+export class ZenDiscoveryAgent implements CrossCuttingAgent {
+  name = "zen-discovery";
+  description = "Problem exploration using zen thinkdeep for Socratic questioning";
+  supportedModes = ["discovery"];
   
+  // Delegates to zen tools: thinkdeep for conversational problem exploration
+  async generateNextQuestion(context: ConversationContext): Promise<SocraticQuestion>;
+  async buildProblemUnderstanding(transcript: ConversationTranscript): Promise<ProblemInsights>;
+  async reflectConversation(context: ConversationContext): Promise<DiscoveryReflection>;
+  async validateDiscoveryCompleteness(insights: ProblemInsights): Promise<ReadinessAssessment>;
+}
+
+export class ZenSecurityAgent implements CrossCuttingAgent {
+  name = "zen-security";
+  description = "Security analysis using zen secaudit and thinkdeep tools";
+  supportedModes = ["planning", "design", "build", "test", "analyze"];
+  
+  // Delegates to zen tools: secaudit, thinkdeep --security
   async performThreatModeling(architecture: any): Promise<ThreatModel>;
   async analyzeSecurityPatterns(code: any): Promise<SecurityAnalysis>;
   async contributeSecurityRequirements(context: ModeContext): Promise<SecurityRequirement[]>;
   async validateSecurityCompliance(output: any): Promise<SecurityValidationResult>;
 }
 
+// AgentRegistry now zen-aware - automatically detects zen availability
 export interface AgentRegistry {
   agents: Map<string, CrossCuttingAgent>;
+  zenAvailable: boolean;
   
   register(agent: CrossCuttingAgent): void;
   getAgent(name: string): CrossCuttingAgent | null;
   getAgentsForMode(modeName: string): CrossCuttingAgent[];
   evaluateWithAllAgents(proposal: any, context: ModeContext): Promise<AgentFeedback[]>;
+  
+  // zen integration methods
+  detectZen(): Promise<boolean>;
+  registerZenAgents(): void;
+  registerFallbackAgents(): void;
+  promptZenInstallation(): Promise<boolean>;
 }
 ```
 
@@ -173,10 +201,11 @@ export abstract class AbstractMode implements Mode {
   abstract saveState(): Promise<void>;
   abstract loadState(): Promise<void>;
   
-  // Agent integration methods
+  // Agent integration methods (now zen-powered)
   async evaluateWithAgents(proposal: any): Promise<AgentFeedback[]> {
     const feedback: AgentFeedback[] = [];
     for (const agent of this.crossCuttingAgents) {
+      // agents now delegate to zen tools via ZenAgentAdapter
       const agentFeedback = await agent.evaluateProposal(proposal, this.context);
       feedback.push(agentFeedback);
     }
@@ -447,53 +476,84 @@ export class DiscoveryMode extends AbstractMode {
   name = "discovery";
   description = "Explore and understand problems through conversational discovery";
   
+  private zenDiscoveryAgent: ZenDiscoveryAgent;
+  private conversationContext: ConversationContext;
+  
   // Discovery-specific capabilities (problem-focused, not code-focused)
   async buildProblemUnderstanding(input: string): Promise<ProblemInsights>;
   async exploreUserNeeds(): Promise<UserNeedAnalysis>;
   async defineSuccessCriteria(): Promise<SuccessMetrics>;
   async identifyConstraints(): Promise<ConstraintAnalysis>;
-  async generateProbingQuestions(): Promise<string[]>;
+  
+  // zen-powered conversation management
+  async generateNextQuestion(): Promise<SocraticQuestion> {
+    return await this.zenDiscoveryAgent.generateNextQuestion(this.conversationContext);
+  }
+  
+  async reflectOnConversation(): Promise<DiscoveryReflection> {
+    return await this.zenDiscoveryAgent.reflectConversation(this.conversationContext);
+  }
   
   // Agent integration in discovery
-  async incorporateSecurityConsiderations(): Promise<SecurityConsideration[]>;
   async validateProblemComplexity(problem: ProblemInsights): Promise<ComplexityAssessment>;
   async getAgentPerspectives(problemSpace: string): Promise<AgentPerspective[]>;
   
   // Command handlers for problem discovery
   async handleExplore(problemSpace: string): Promise<ModeResult> {
-    const agentFeedback = await this.evaluateWithAgents({ problemSpace });
-    const insights = await this.buildProblemUnderstanding(problemSpace);
-    await this.incorporateAgentFeedback(agentFeedback);
-    return this.createModeResult(insights, agentFeedback);
+    this.conversationContext.addUserInput(problemSpace);
+    const nextQuestion = await this.generateNextQuestion();
+    const reflection = await this.reflectOnConversation();
+    
+    return this.createModeResult({ nextQuestion, reflection });
+  }
+  
+  async handleAnswer(response: string): Promise<ModeResult> {
+    this.conversationContext.addUserResponse(response);
+    const insights = await this.buildProblemUnderstanding(response);
+    const nextQuestion = await this.generateNextQuestion();
+    
+    return this.createModeResult({ insights, nextQuestion });
   }
   
   async handleWhoFor(stakeholder: string): Promise<ModeResult>;
   async handleSuccess(criteria: string): Promise<ModeResult>;
   async handleConstraint(limitation: string): Promise<ModeResult>;
   
-  // Conversation flow management
-  async guideDiscoveryConversation(userInput: string): Promise<ConversationStep>;
-  async validateDiscoveryCompleteness(): Promise<ReadinessAssessment>;
+  // Conversation flow management with zen integration
+  async guideDiscoveryConversation(userInput: string): Promise<ConversationStep> {
+    this.conversationContext.addUserInput(userInput);
+    const question = await this.generateNextQuestion();
+    return { type: 'question', content: question.text, rationale: question.rationale };
+  }
+  
+  async validateDiscoveryCompleteness(): Promise<ReadinessAssessment> {
+    const insights = await this.zenDiscoveryAgent.buildProblemUnderstanding(
+      this.conversationContext.getTranscript()
+    );
+    return await this.zenDiscoveryAgent.validateDiscoveryCompleteness(insights);
+  }
 }
 ```
 
 **Key Discovery Mode Behaviors**:
 
 - **Problem-first approach**: Always starts with understanding the problem, not jumping to solutions
-- **Socratic questioning**: Asks "why" and "tell me more" to build deeper understanding
-- **Concrete grounding**: Converts abstract ideas into specific, measurable examples
+- **zen-powered Socratic questioning**: Uses zen thinkdeep to generate diagnostic "why" questions for deeper understanding
+- **Conversational flow management**: zen thinkdeep suggests next most valuable question based on conversation context
+- **Concrete grounding**: Converts abstract ideas into specific, measurable examples through guided questioning
 - **Patient exploration**: Doesn't rush to solutions or implementation details
 - **Vision building**: Helps define what success looks like before exploring how to achieve it
-- **Agent-informed exploration**: Security Agent identifies security-related problem dimensions
+- **zen-enhanced reflection**: Uses zen analyze to summarize conversation insights and identify gaps
 - **Complexity awareness**: Complexity Watchdog prevents over-complex problem framings
 
 **Discovery Artifacts**:
 
 - Living project document (`.conductor/project.md`) with problem space, success criteria, and constraints
-- Agent perspectives on security considerations and complexity implications
-- Conversation history with key insights, assumptions, and agent feedback
-- Stakeholder and user need mapping with security and complexity considerations
-- Success metrics and validation approaches including agent-contributed criteria
+- zen-generated conversation transcript with question reasoning and reflection summaries
+- Structured problem insights extracted from conversational exploration
+- Stakeholder and user need mapping identified through Socratic questioning
+- Success metrics and validation approaches derived from zen-guided discovery
+- Question trees and reasoning chains for future reference in Planning mode
 
 ### Analyze Mode Implementation Plan
 
@@ -635,9 +695,9 @@ export class AnalyzeMode extends AbstractMode {
 
 ## Implementation Phases
 
-### Phase 1: Foundation + Discovery Mode (CURRENT)
+### Phase 1: Foundation + Discovery Mode (CURRENT - zen Integration)
 
-**Scope**: Minimal viable CLI with basic mode system
+**Scope**: Minimal viable CLI with zen integration proof-of-concept
 
 **Key Components**:
 
@@ -645,27 +705,26 @@ export class AnalyzeMode extends AbstractMode {
 - Basic Discovery mode implementation (conversational problem exploration)
 - CLI integration foundation (basic commands: init, discover, status)
 - Simple state management and context preservation
-- Basic prompt management (single AI agent approach)
+- **zen integration foundation**: ZenAgentAdapter base class
+- **Proof-of-concept zen agent**: ZenDiscoveryAgent for Discovery mode using zen thinkdeep
 
-**Agent Integration**: DEFERRED - Phase 1 uses simple AI interaction without cross-cutting agents
+**Agent Integration**: MODIFIED - Phase 1 includes zen adapter framework validation with Discovery Mode focus
 
-### Phase 2: Agent Integration + Enhanced Features  
+### Phase 2: zen Agent Migration + Enhanced Features  
 
-**Scope**: Cross-cutting agent framework and enhanced mode capabilities
+**Scope**: Complete zen adapter implementation replacing custom agents
 
 **Key Components**:
 
-- Cross-cutting agent framework foundation (CrossCuttingAgent interface, AgentFeedback types)
-- Basic Complexity Watchdog agent with rule-based evaluation
-- Security Agent foundation for threat analysis
-- Security Agent implementation with threat modeling
+- **Complete zen adapter framework**: ZenAgentAdapter with error handling and fallbacks
+- **zen agent implementations**: ZenComplexityAgent, ZenSecurityAgent, ZenTestGenAgent
+- **ZenAwareAgentRegistry**: Automatic zen detection and installation prompts
+- Enhanced command execution flow with zen tool integration
+- **Performance optimization**: Caching, parallel zen tool execution
+- **Error handling**: Graceful zen tool failures with fallback agents
 - Agent integration methods in AbstractMode (evaluateWithAgents, incorporateAgentFeedback)
-- AgentRegistry system for managing cross-cutting agents
-- Enhanced command execution flow with agent evaluation
-- Prompt template system including agent templates
-- Agent-specific prompt templates and generation
-- Code architecture refactoring for maintainability
-- Analyze mode for technical codebase analysis with agent integration
+- Analyze mode for technical codebase analysis with full zen integration
+- **Installation automation**: zen tool installation and version management
 
 ### Phase 3: Planning Mode + Build Mode Foundation
 
